@@ -414,6 +414,10 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .detail-body { padding: 10px 14px; }
 .detail-scale { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
 .detail-scale:last-child { border-bottom: none; }
+.detail-subscale-group { padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.detail-subscale-group:last-child { border-bottom: none; padding-bottom: 0; }
+.detail-subscale-group .detail-scale { border-bottom: none; padding: 3px 0 0; }
+.detail-subscale-title { font-size: 11px; font-weight: 700; color: var(--tf); }
 .detail-scale-ll { font-size: 10px; color: var(--tf-dim); flex: 0 0 130px; }
 .detail-scale-rl { font-size: 10px; color: var(--tf-dim); flex: 0 0 80px; text-align: right; }
 .detail-circles { display: flex; gap: 6px; flex: 1; justify-content: center; }
@@ -455,6 +459,45 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-discard { background: transparent; color: var(--tf-dim); border: 1px solid var(--border); }
 .btn-discard:hover { background: var(--dark); color: var(--tb); border-color: var(--dark); }
+
+/* ── Distillery link ── */
+.dist-link {
+  cursor: pointer; border-bottom: 1px dotted var(--tf-dim);
+  transition: color 0.12s, border-color 0.12s;
+}
+@media (hover: hover) { .dist-link:hover { color: var(--amber); border-bottom-color: var(--amber); } }
+
+/* ── Distillery modal ── */
+.dist-modal-card {
+  background: var(--cream); border-radius: 8px; padding: 20px 22px 20px;
+  max-width: 520px; width: 100%;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.28);
+  transform: translateY(10px); transition: transform 0.18s;
+  max-height: 82vh; overflow-y: auto;
+}
+.modal-overlay.open .dist-modal-card { transform: translateY(0); }
+.dist-modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px; }
+.dist-modal-name-row { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 4px; }
+.dist-modal-name { font-size: 20px; font-weight: 700; color: var(--tf); line-height: 1.2; }
+.dist-modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--tf-dim); padding: 0; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+@media (hover: hover) { .dist-modal-close:hover { color: var(--tf); } }
+.dist-location-badge {
+  display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; border-radius: 3px; padding: 2px 8px; white-space: nowrap;
+  /* bg/color set inline per country */
+}
+.dist-modal-founded { font-size: 12.5px; color: var(--tf); font-weight: 400; line-height: 1.4; }
+.dist-style { font-size: 12.5px; color: var(--tf); line-height: 1.6; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.dist-section-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--tf-dim); margin-bottom: 7px; }
+.dist-lineup { list-style: none; display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.dist-lineup li { font-size: 12px; color: var(--tf); padding-left: 10px; position: relative; }
+.dist-lineup li::before { content: '—'; position: absolute; left: 0; color: var(--tf-dim); }
+.dist-fact { font-size: 11.5px; color: var(--tf-dim); font-style: italic; line-height: 1.6; }
+.dist-fact strong { color: var(--amber); font-style: normal; }
+.dist-photo {
+  width: 100%; height: 160px; object-fit: cover; border-radius: 5px;
+  margin-bottom: 14px; display: block; background: var(--bg);
+}
 
 /* ── Toast ── */
 .toast {
@@ -1608,7 +1651,7 @@ function renderHistory() {
     const abvStr  = t.abv ? (t.abv.replace('%','').trim() + '% ABV') : '';
     // Line 1 meta: Distillery (bold) · Region · Age · Vintage · ABV
     const metaParts = [
-      t.distillery ? `<strong>${esc(t.distillery)}</strong>` : '',
+      t.distillery ? `<strong class="dist-link" data-d="${esc(t.distillery)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(t.distillery)}</strong>` : '',
       t.region ? esc(t.region) : '',
       esc(ageStr), distYearStr ? `<span style="color:var(--tf-dim);">${esc(distYearStr)}</span>` : '',
       esc(abvStr),
@@ -2110,7 +2153,7 @@ function renderDetail(id) {
           </div>
           ${t.score!=null?`<div style="font-size:28px;font-weight:700;color:var(--tf);line-height:1;flex-shrink:0;">${t.score}<span style="font-size:13px;color:var(--tf-dim);font-weight:400;">/100</span></div>`:''}
         </div>
-        ${t.distillery?`<div class="detail-meta" style="margin-top:4px;">${esc(t.distillery)}${meta?' · '+esc(meta):''}</div>`:(meta?`<div class="detail-meta" style="margin-top:4px;">${esc(meta)}</div>`:'')}
+        ${t.distillery?`<div class="detail-meta" style="margin-top:4px;"><span class="dist-link" data-d="${esc(t.distillery)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(t.distillery)}</span>${meta?' · '+esc(meta):''}</div>`:(meta?`<div class="detail-meta" style="margin-top:4px;">${esc(meta)}</div>`:'')}
         ${t.bottler?`<div class="detail-meta" style="margin-top:2px;">${t.bottlingType==='cask'?'Cask owner: ':'Bottled by: '}${esc(t.bottler)}</div>`:''}
         <div class="detail-meta" style="margin-top:2px;">${[dateStr,t.taster].filter(Boolean).map(esc).join(' · ')}</div>
         <div class="detail-actions" style="margin-top:14px;justify-content:flex-start;">
@@ -2154,7 +2197,11 @@ function renderDetail(id) {
     <div class="detail-section">
       <div class="detail-sec-head"><span class="detail-sec-title">Process Drivers</span></div>
       <div class="detail-body">
-        ${SUBSCALES.map(s=>scaleHtml(s.field, s.label+' · '+s.ll, s.rl, t[s.field])).join('')}
+        ${SUBSCALES.map(s=>`
+          <div class="detail-subscale-group">
+            <div class="detail-subscale-title">${esc(s.label)}</div>
+            ${scaleHtml(s.field, s.ll, s.rl, t[s.field])}
+          </div>`).join('')}
       </div>
     </div>
     ${(t.flavors&&t.flavors.length)?`
@@ -2649,12 +2696,24 @@ const DISTILLERIES = [
   ['Monkey Shoulder','Blended Malt Scotch'],['Teacher\'s','Blended Scotch'],
   ['VAT 69','Blended Scotch'],['Whyte & Mackay','Blended Scotch'],
   // ── Irish ──
-  ['Bushmills','Irish'],['Connacht','Irish'],['Dingle','Irish'],
-  ['Echlinville','Irish'],['Green Spot','Irish'],['Jameson','Irish Blend'],
-  ['Kilbeggan','Irish'],['Killowen','Irish'],['Midleton','Irish'],
-  ['Powers','Irish Blend'],['Redbreast','Irish'],['Roe & Co','Irish Blend'],
-  ['Slane','Irish'],['Teeling','Irish'],['Tullamore D.E.W.','Irish Blend'],
-  ['Waterford','Irish'],['West Cork','Irish'],['Yellow Spot','Irish'],
+  ['Boann','Irish'],['Blue Spot','Irish Single Pot Still'],
+  ['Bushmills','Irish'],['Clontarf','Irish Blend'],['Clonakilty','Irish'],
+  ['Connemara','Irish Single Malt'],['Connacht','Irish'],
+  ['Dingle','Irish Single Malt'],['Drumshanbo','Irish Single Malt'],
+  ['Echlinville','Irish'],['Egan\'s','Irish'],['Glendalough','Irish Single Malt'],
+  ['Great Northern','Irish'],['Green Spot','Irish Single Pot Still'],
+  ['Hinch','Irish'],['Hyde','Irish Single Malt'],
+  ['Jameson','Irish Blend'],['Kilbeggan','Irish'],['Killowen','Irish'],
+  ['Knappogue Castle','Irish Single Malt'],['Method and Madness','Irish'],
+  ['Midleton','Irish Single Pot Still'],['Nephin','Irish Single Malt'],
+  ['Pearse Lyons','Irish'],['Powerscourt','Irish Single Malt'],
+  ['Powers','Irish Blend'],['Redbreast','Irish Single Pot Still'],
+  ['Red Spot','Irish Single Pot Still'],['Roe & Co','Irish Blend'],
+  ['Slane','Irish Blend'],['Teeling','Irish'],['The Irishman','Irish'],
+  ['Tipperary','Irish Single Malt'],['Tullamore D.E.W.','Irish Blend'],
+  ['Tyrconnell','Irish Single Malt'],['Walsh Whiskey','Irish'],
+  ['Waterford','Irish Single Malt'],['West Cork','Irish'],
+  ['Writer\'s Tears','Irish'],['Yellow Spot','Irish Single Pot Still'],
   // ── Japanese ──
   ['Akkeshi','Japanese'],['Chichibu','Japanese'],['Fuji Gotemba','Japanese'],
   ['Hakushu','Japanese'],['Hibiki','Japanese Blend'],['Kanosuke','Japanese'],
@@ -3756,7 +3815,7 @@ function renderRecCards() {
         <div class="rec-card-head">
           <div style="min-width:0;">
             <div class="rec-name">${esc(r.name)}</div>
-            ${(r.region || r.country) ? `<div class="rec-distillery">${[r.region, r.country].filter(Boolean).map(s=>esc(s)).join(' · ')}</div>` : ''}
+            ${r.distillery ? `<div class="rec-distillery"><span class="dist-link" data-d="${esc(r.distillery)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(r.distillery)}</span>${(r.region||r.country)?' · '+[r.region,r.country].filter(Boolean).map(esc).join(' · '):''}</div>` : (r.region||r.country)?`<div class="rec-distillery">${[r.region,r.country].filter(Boolean).map(esc).join(' · ')}</div>`:''}
           </div>
           <div class="rec-match">
             <div class="rec-match-score">${Math.round(r.matchScore)}<span style="font-size:12px;color:var(--tf-dim);font-weight:400;">%</span></div>
@@ -4077,7 +4136,7 @@ function renderSpinFavs() {
           <button class="spin-fav-remove" title="Remove" onclick="event.stopPropagation();confirmRemoveSpin(this,${JSON.stringify(f.bottleName)})">×</button>
         </div>
         <div class="spin-hist-expanded" id="spinFavExpanded${i}" style="display:none;">
-          ${f.bottleMeta ? `<div class="fit-bottle-meta" style="margin-bottom:6px;">${esc(f.bottleMeta)}</div>` : ''}
+          ${f.bottleMeta ? `<div class="fit-bottle-meta" style="margin-bottom:6px;">${distMetaHtml(f.bottleMeta)}</div>` : ''}
           ${f.summary
             ? `<div class="fit-summary">${esc(f.summary)}</div>
                ${(strengthsHtml||concernsHtml) ? `<div class="fit-points">${strengthsHtml}${concernsHtml}</div>` : ''}`
@@ -4259,7 +4318,7 @@ function renderFitResult(r) {
       return `<div class="rec-card" style="margin-bottom:10px;">
         <div class="rec-card-head">
           <div style="min-width:0;"><div class="rec-name">${esc(a.name)}</div>
-          ${(a.region||a.country)?`<div class="rec-distillery">${[a.region,a.country].filter(Boolean).map(s=>esc(s)).join(' · ')}</div>`:''}</div>
+          ${a.distillery?`<div class="rec-distillery"><span class="dist-link" data-d="${esc(a.distillery)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(a.distillery)}</span>${(a.region||a.country)?' · '+[a.region,a.country].filter(Boolean).map(esc).join(' · '):''}</div>`:(a.region||a.country)?`<div class="rec-distillery">${[a.region,a.country].filter(Boolean).map(esc).join(' · ')}</div>`:''}</div>
           <div class="rec-match"><div class="rec-match-score">${Math.round(a.matchScore)}<span style="font-size:12px;color:var(--tf-dim);font-weight:400;">%</span></div><div class="rec-match-label">Match</div></div>
         </div>
         <div class="rec-body">
@@ -4277,7 +4336,7 @@ function renderFitResult(r) {
     <div class="fit-result-head">
       <div style="min-width:0;flex:1;">
         <div class="fit-bottle-name">${esc(r.bottleName || '')}</div>
-        ${r.bottleMeta ? `<div class="fit-bottle-meta">${esc(r.bottleMeta)}</div>` : ''}
+        ${r.bottleMeta ? `<div class="fit-bottle-meta">${distMetaHtml(r.bottleMeta)}</div>` : ''}
       </div>
       <div style="display:flex;align-items:flex-start;gap:4px;flex-shrink:0;">
         <button class="spin-fav-btn${isSaved?' saved':''}" id="spinFavBtn"
@@ -4304,10 +4363,58 @@ function renderFitResult(r) {
 }
 
 // ── Versioning ────────────────────────────────────────────────────────────────
-const APP_VERSION  = '1.3.1';
+const APP_VERSION  = '1.4.5';
 const DATA_VERSION = 2;
 
 const CHANGELOG = [
+  {
+    version: '1.4.5', date: '22 Apr 2026, 12:38 PDT', label: 'Location Badge Colours',
+    changes: [
+      'Distillery location badge is now colour-coded by country: Scotland (amber), Ireland (green), Japan (red), USA (blue), Canada (purple), Taiwan, India, Scandinavia, Australia, France — each with a distinct muted tint',
+      'Founded label now prefixed with "Est." for clarity',
+    ],
+  },
+  {
+    version: '1.4.4', date: '22 Apr 2026, 12:33 PDT', label: 'Distillery Modal Polish',
+    changes: [
+      'Location badge now sits inline with the distillery name, not below it',
+      'Founding information promoted to prominent body text, no longer small and dim',
+      'Reduced modal padding for a tighter, less airy layout',
+    ],
+  },
+  {
+    version: '1.4.3', date: '22 Apr 2026, 12:31 PDT', label: 'Detail View Fix',
+    changes: [
+      'Process Drivers in tasting detail: scale title now displayed above the circles row instead of concatenated with the left anchor label',
+    ],
+  },
+  {
+    version: '1.4.2', date: '22 Apr 2026, 12:30 PDT', label: 'Distillery Links Everywhere',
+    changes: [
+      'Distillery names now clickable in Discover recommendations and Spin the Bottle results',
+      'Spin the Bottle bottleMeta distillery name is parsed and linked automatically',
+      'Distillery clicks no longer bubble up to card click handlers (stopPropagation)',
+      'Modal layout: name, location, and founding info now appear above the photo',
+    ],
+  },
+  {
+    version: '1.4.1', date: '22 Apr 2026, 12:26 PDT', label: 'Distillery Photos',
+    changes: [
+      'Distillery modal now fetches a photo from Wikipedia in parallel with the profile',
+      'Image and text load together — no extra wait',
+      'Gracefully omits photo if Wikipedia has no image for that distillery',
+    ],
+  },
+  {
+    version: '1.4.0', date: '22 Apr 2026, 12:23 PDT', label: 'Distillery Profiles',
+    changes: [
+      'Distillery names are now clickable anywhere — history cards and tasting detail view',
+      'Opens a Claude-powered profile: location, founding, house style, core lineup, notable fact',
+      'Results cached for the session so repeat lookups are instant',
+      'Expanded Irish distillery list: Knappogue Castle, Connemara, Tyrconnell, Glendalough, Hyde, Drumshanbo, Red/Blue Spot, Writer\'s Tears, The Irishman, and more',
+      'Irish entries now carry specific type labels (Single Malt, Single Pot Still, Blend)',
+    ],
+  },
   {
     version: '1.3.1', date: '22 Apr 2026, 08:14 PDT', label: 'Bug Fixes',
     changes: [
@@ -4471,6 +4578,137 @@ function closeChangelog() {
   document.getElementById('changelogModal').classList.remove('open');
 }
 
+// ── Distillery modal ──────────────────────────────────────────────────────────
+const _distilleryCache = {};
+
+// Colour-code location badge by country
+function distLocationStyle(location) {
+  const s = (location || '').toLowerCase();
+  if (s.includes('scotland'))                                   return 'background:#f0e2cc;color:#7a3e0e;';
+  if (s.includes('ireland'))                                    return 'background:#d6ead6;color:#2a5225;';
+  if (s.includes('japan'))                                      return 'background:#f0d8d8;color:#7a1e20;';
+  if (s.includes('usa')||s.includes('united states')||
+      s.includes('kentucky')||s.includes('tennessee'))         return 'background:#d4dff0;color:#1e3a6e;';
+  if (s.includes('canada'))                                     return 'background:#e8d8f0;color:#4a1e7a;';
+  if (s.includes('taiwan'))                                     return 'background:#fce8d4;color:#7a3e10;';
+  if (s.includes('india'))                                      return 'background:#fff0d0;color:#7a5000;';
+  if (s.includes('sweden')||s.includes('scandinavia')||
+      s.includes('denmark')||s.includes('norway')||
+      s.includes('finland'))                                    return 'background:#d8eaf0;color:#1e5070;';
+  if (s.includes('australia'))                                  return 'background:#e0f0d8;color:#2a5020;';
+  if (s.includes('france')||s.includes('cognac')||
+      s.includes('armagnac'))                                   return 'background:#f0e4d0;color:#6b3a1e;';
+  return 'background:#e4e2de;color:#3a3830;'; // neutral fallback
+}
+
+// Parse "Distillery · Region · Country" meta string and make distillery clickable
+function distMetaHtml(meta) {
+  if (!meta) return '';
+  const parts = meta.split(' · ');
+  if (parts.length < 2) return esc(meta);
+  const dist = parts[0];
+  const rest = parts.slice(1).map(esc).join(' · ');
+  return `<span class="dist-link" data-d="${esc(dist)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(dist)}</span> · ${rest}`;
+}
+
+function closeDistilleryModal() {
+  document.getElementById('distilleryModal').classList.remove('open');
+}
+
+async function fetchDistilleryImage(name) {
+  const tryTitle = async (title) => {
+    try {
+      const res = await fetch(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+        { signal: AbortSignal.timeout(6000) }
+      );
+      if (!res.ok) return null;
+      const d = await res.json();
+      return d.thumbnail?.source || null;
+    } catch { return null; }
+  };
+  return await tryTitle(name + ' distillery') || await tryTitle(name);
+}
+
+async function fetchDistilleryProfile(name, key) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': key, 'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6', max_tokens: 900,
+      messages: [{ role: 'user', content:
+        `Give me a distillery profile for "${name}" (whisky producer). Respond with a single JSON object and nothing else:\n` +
+        `{\n  "location": "Region, Country",\n  "founded": "Year — ownership note if notable",\n` +
+        `  "style": "2–3 sentences on production character and house style",\n` +
+        `  "lineup": ["Expression 1","Expression 2","Expression 3","Expression 4","Expression 5"],\n` +
+        `  "fact": "One distinctive or interesting fact about this distillery"\n}` }]
+    })
+  });
+  const data = await res.json();
+  const match = (data.content?.[0]?.text || '').match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('No JSON in response');
+  return JSON.parse(match[0]);
+}
+
+async function showDistillery(name) {
+  const modal = document.getElementById('distilleryModal');
+  document.getElementById('distModalName').textContent = name;
+  document.getElementById('distModalBadge').innerHTML = '';
+  document.getElementById('distModalFounded').textContent = '';
+  document.getElementById('distModalBody').innerHTML =
+    `<div class="discover-loading"><div class="spinner"></div><div class="discover-loading-text">Looking up ${esc(name)}…</div></div>`;
+  modal.classList.add('open');
+
+  if (_distilleryCache[name]) { renderDistilleryModal(_distilleryCache[name]); return; }
+
+  const key = loadApiKey();
+  if (!key) {
+    document.getElementById('distModalBody').innerHTML =
+      `<p style="font-size:12px;color:var(--tf-dim);line-height:1.6;">Add your Claude API key in Settings to look up distillery profiles.</p>`;
+    return;
+  }
+
+  try {
+    const [profileResult, imageResult] = await Promise.allSettled([
+      fetchDistilleryProfile(name, key),
+      fetchDistilleryImage(name),
+    ]);
+    if (profileResult.status === 'rejected') throw profileResult.reason;
+    const info = profileResult.value;
+    info.imageUrl = imageResult.status === 'fulfilled' ? imageResult.value : null;
+    _distilleryCache[name] = info;
+    renderDistilleryModal(info);
+  } catch(e) {
+    document.getElementById('distModalBody').innerHTML =
+      `<p style="font-size:12px;color:var(--tf-dim);line-height:1.6;">Couldn't load profile for ${esc(name)}. Try again.</p>`;
+  }
+}
+
+function renderDistilleryModal(info) {
+  // Populate header fields
+  document.getElementById('distModalBadge').innerHTML =
+    info.location ? `<span class="dist-location-badge" style="${distLocationStyle(info.location)}">${esc(info.location)}</span>` : '';
+  document.getElementById('distModalFounded').textContent = info.founded ? `Est. ${info.founded}` : '';
+
+  // Body: photo → style → lineup → fact
+  const imgHtml = info.imageUrl
+    ? `<img src="${esc(info.imageUrl)}" class="dist-photo" alt="" loading="lazy">`
+    : '';
+  document.getElementById('distModalBody').innerHTML = `
+    ${imgHtml}
+    <div class="dist-style">${esc(info.style||'')}</div>
+    <div class="dist-section-label">Core Lineup</div>
+    <ul class="dist-lineup">
+      ${(info.lineup||[]).map(l=>`<li>${esc(l)}</li>`).join('')}
+    </ul>
+    <div class="dist-section-label">Notable</div>
+    <div class="dist-fact"><strong>✦</strong> ${esc(info.fact||'')}</div>`;
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 runMigrations();
 renderHistory();
@@ -4550,6 +4788,21 @@ renderSpinFavs();
       <button class="btn btn-discard" onclick="confirmDiscard()">Discard</button>
       <button class="btn btn-primary" onclick="closeDiscardModal()">Keep Editing</button>
     </div>
+  </div>
+</div>
+<div id="distilleryModal" class="modal-overlay" onclick="if(event.target===this)closeDistilleryModal()">
+  <div class="dist-modal-card">
+    <div class="dist-modal-header">
+      <div style="flex:1;min-width:0;">
+        <div class="dist-modal-name-row">
+          <div class="dist-modal-name" id="distModalName"></div>
+          <div id="distModalBadge"></div>
+        </div>
+        <div class="dist-modal-founded" id="distModalFounded"></div>
+      </div>
+      <button class="dist-modal-close" onclick="closeDistilleryModal()">×</button>
+    </div>
+    <div id="distModalBody"></div>
   </div>
 </div>
 </body>
