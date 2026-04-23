@@ -1149,7 +1149,7 @@ select.field-input {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.0.1</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.1.0</div>
 
 <header class="app-header">
   <div>
@@ -5160,9 +5160,320 @@ function updateBioDayPill() {
   pill.textContent = `${icons[type] || '·'} ${type} Day`;
 }
 
+// ── Òstair — live TWE context fetching ───────────────────────────────────────
+
+// Fetch all products matching a search term from TWE (reuses the existing proxy / buildId stack)
+async function fetchTWEProductList(searchTerm) {
+  const q = encodeURIComponent(searchTerm);
+  const buildId = await getTWEBuildId();
+
+  // Strategy A: Next.js data API
+  if (buildId) {
+    try {
+      const url   = `https://www.thewhiskyexchange.com/_next/data/${buildId}/search.json?q=${q}`;
+      const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+      const res   = await fetch(proxy, { signal: AbortSignal.timeout(10000) });
+      if (res.ok) {
+        const data = await res.json();
+        const pp   = data?.pageProps ?? data;
+        const products = pp?.initialData?.products ?? pp?.searchResult?.products ??
+                         pp?.data?.products ?? pp?.products ??
+                         deepFindArray(pp, ['products','items','results','hits'], 4);
+        if (products?.length) return products;
+      }
+    } catch {}
+  }
+
+  // Strategy B: allorigins HTML scrape → __NEXT_DATA__
+  const proxyBases = [
+    'https://api.allorigins.win/raw?url=',
+    'https://api.codetabs.com/v1/proxy?quest=',
+  ];
+  for (const base of proxyBases) {
+    try {
+      const proxy = base + encodeURIComponent('https://www.thewhiskyexchange.com/search?q=' + q);
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(12000) });
+      if (!res.ok) continue;
+      const html = await res.text();
+      const m = html.match(/<script[^>]*id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+      if (m) {
+        const nd = JSON.parse(m[1]);
+        if (nd?.buildId && !_tweBuildId) _tweBuildId = nd.buildId;
+        const pp = nd?.props?.pageProps ?? nd?.props ?? nd;
+        const products = pp?.initialData?.products ?? pp?.searchResult?.products ??
+                         pp?.data?.products ?? pp?.products ??
+                         deepFindArray(pp, ['products','items','results','hits'], 4);
+        if (products?.length) return products;
+      }
+    } catch {}
+  }
+
+  return null;
+}
+
+// Extract distillery names mentioned in the query (longest-match, up to 2)
+function extractDistilleryMentions(query) {
+  const qLow = query.toLowerCase();
+  const names = [...new Set(DISTILLERIES.map(d => d[0]))]
+    .sort((a, b) => b.length - a.length);
+  const found = [];
+  for (const name of names) {
+    if (found.length >= 2) break;
+    if (qLow.includes(name.toLowerCase())) found.push(name);
+  }
+  return found;
+}
+
+// Extract useful search terms when no distillery is named (e.g. "blackberry whiskies")
+function extractStyleTerms(query) {
+  const stop = new Set(['would','could','should','like','what','drink','pour','open',
+    'tonight','which','these','being','recently','produced','made','some','that','this',
+    'with','have','been','know','find','feel','really','quite','something','whiskies',
+    'whisky','whiskey','bottle','bottles','tell','about','think','style','type']);
+  const words = query.toLowerCase()
+    .replace(/[^a-z\s]/g, ' ').split(/\s+/)
+    .filter(w => w.length > 3 && !stop.has(w));
+  if (!words.length) return [];
+  // Return up to 2 words joined as a search phrase
+  return [words.slice(0, 2).join(' ')];
+}
+
+// ── Whiskybase API (primary source for distillery ranges) ─────────────────────
+
+const WB_PROXIES = [
+  (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  (u) => `https://thingproxy.freeboard.io/fetch/${u}`,
+];
+
+async function wbFetch(path) {
+  const base = 'https://www.whiskybase.com' + path;
+  // Try direct first (CORS might be open on API endpoints), then proxies
+  const urls = [base, ...WB_PROXIES.map(fn => fn(base))];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/json, text/html, */*', 'X-Requested-With': 'XMLHttpRequest' },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) continue;
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('json')) return await res.json();
+      const text = await res.text();
+      // Try JSON parse
+      try { return JSON.parse(text); } catch {}
+      // Try extracting JSON from HTML (some proxies wrap in HTML)
+      const m = text.match(/^\s*(\{[\s\S]*\}|\[[\s\S]*\])\s*$/);
+      if (m) try { return JSON.parse(m[1]); } catch {}
+    } catch {}
+  }
+  return null;
+}
+
+async function fetchWhiskybaseDistilleryId(name) {
+  // Strategy A: search API
+  const q = encodeURIComponent(name);
+  const data = await wbFetch(`/api/search?q=${q}&type=distillery`);
+  if (data) {
+    const items = data?.results || data?.data || data?.distilleries ||
+                  data?.items || (Array.isArray(data) ? data : null);
+    if (items?.length) {
+      const best = items.find(d => {
+        const n = (d?.name || d?.title || '').toLowerCase();
+        return n.includes(name.toLowerCase()) || name.toLowerCase().includes(n);
+      }) || items[0];
+      const id = best?.id || best?.distillery_id || best?.wbid;
+      if (id) return id;
+    }
+  }
+  // Strategy B: search page JSON
+  const searchData = await wbFetch(`/search?q=${q}&type=distillery`);
+  if (searchData) {
+    const items = searchData?.results || searchData?.distilleries ||
+                  deepFindArray(searchData, ['distilleries','results','items'], 4);
+    if (items?.length) {
+      const best = items[0];
+      return best?.id || best?.distillery_id || null;
+    }
+  }
+  return null;
+}
+
+async function fetchWhiskybaseRange(distilleryId, distilleryName) {
+  const all = [];
+  for (let page = 1; page <= 4; page++) {
+    const path = `/api/whiskies?distillery_id=${distilleryId}&itemsperpage=50&sort=rating&page=${page}`;
+    const data = await wbFetch(path);
+    if (!data) break;
+    const items = data?.whiskies || data?.results || data?.data ||
+                  data?.items || (Array.isArray(data) ? data : null);
+    if (!items?.length) break;
+    all.push(...items);
+    // Stop early if last page
+    if (items.length < 50) break;
+  }
+
+  // Fallback A: whiskies.json endpoint
+  if (!all.length) {
+    const q = encodeURIComponent(distilleryName);
+    for (const path of [
+      `/whiskies.json?distillery=${q}&page=1`,
+      `/api/whiskies?q=${q}&itemsperpage=50&page=1`,
+      `/api/search?q=${q}&type=whisky&itemsperpage=50`,
+    ]) {
+      const data = await wbFetch(path);
+      if (data) {
+        const items = data?.whiskies || data?.results || data?.data ||
+                      data?.items || (Array.isArray(data) ? data : null);
+        if (items?.length) { all.push(...items); break; }
+      }
+    }
+  }
+
+  return all;
+}
+
+function formatWhiskybaseItems(distilleryName, items) {
+  const lines = items.slice(0, 100).map(p => {
+    const name    = p?.name || p?.title || p?.whisky || '';
+    const vintage = p?.vintage || p?.distilled || '';
+    const abv     = p?.strength || p?.abv || '';
+    const cask    = p?.casktype || p?.cask_type || p?.cask || '';
+    const rating  = p?.rating || p?.score || '';
+    if (!name) return null;
+    const meta = [
+      vintage ? `${vintage}` : '',
+      abv     ? `${abv}%` : '',
+      cask    ? cask : '',
+      rating  ? `WB ${parseFloat(rating).toFixed(1)}` : '',
+    ].filter(Boolean).join(', ');
+    return `  - ${name}${meta ? ` (${meta})` : ''}`;
+  }).filter(Boolean).join('\n');
+  return lines
+    ? `${distilleryName} bottlings from Whiskybase (${items.length} total, sorted by rating):\n${lines}`
+    : null;
+}
+
+// Build product context for the Òstair prompt
+// Whiskybase for distillery range queries; TWE for style/trend queries
+async function buildTWEContext(query) {
+  const distilleries = extractDistilleryMentions(query);
+
+  // Always inject a comprehensiveness instruction for distillery queries
+  const distilleryHint = distilleries.length
+    ? `\n\nIMPORTANT: The user's question specifically concerns ${distilleries.join(' and ')}. ` +
+      `Be as comprehensive as possible about their FULL product range — all expressions, ` +
+      `limited releases, annual bottlings, cask finish variants, vintage single casks. ` +
+      `Do not limit yourself to only the best-known expressions. If uncertain about very recent releases, say so.`
+    : '';
+
+  if (distilleries.length) {
+    // Try Whiskybase first (comprehensive catalog), fall back to TWE (current stock)
+    const blocks = await Promise.all(distilleries.slice(0, 2).map(async name => {
+      // Whiskybase: find distillery ID → fetch range
+      const wbId = await fetchWhiskybaseDistilleryId(name);
+      if (wbId) {
+        const items = await fetchWhiskybaseRange(wbId, name);
+        if (items?.length) return formatWhiskybaseItems(name, items);
+      }
+      // TWE fallback
+      const tweProducts = await fetchTWEProductList(name);
+      if (tweProducts?.length) {
+        const lines = tweProducts.slice(0, 35).map(p => {
+          const n = p?.name || p?.title || p?.productName || '';
+          const price = extractGBPPrice(p);
+          return n ? `  - ${n}${price ? ` (£${price.toFixed(2)})` : ''}` : null;
+        }).filter(Boolean).join('\n');
+        return lines ? `${name} — currently on The Whisky Exchange:\n${lines}` : null;
+      }
+      return null;
+    }));
+
+    const valid = blocks.filter(Boolean);
+    if (valid.length) {
+      return distilleryHint + '\n\nLIVE PRODUCT DATA:\n' + valid.join('\n\n') +
+        '\n(Use this as the authoritative source. Do not invent expressions not on this list.)';
+    }
+
+    // All live fetches failed — ask a fast Claude model to enumerate the range
+    const claudeRanges = await Promise.all(
+      distilleries.slice(0, 2).map(name => enumerateRangeWithClaude(name))
+    );
+    const claudeValid = claudeRanges.filter(Boolean);
+    if (claudeValid.length) {
+      return distilleryHint +
+        '\n\nDISTILLERY RANGE — use this as your working list of expressions to rank:\n' +
+        claudeValid.join('\n\n') +
+        '\n\nWork through this list confidently. Do not hedge or refuse to rank — give a definitive ordering based on what you know about this person\'s palate. For any expression you have limited knowledge of, place it based on its category and cask type rather than skipping it.';
+    }
+
+    return distilleryHint;
+  }
+
+  // Style/trend queries — use TWE (has current availability)
+  const styleTerms = extractStyleTerms(query);
+  if (!styleTerms.length) return '';
+  const blocks = await Promise.all(styleTerms.map(async term => {
+    const products = await fetchTWEProductList(term);
+    if (!products?.length) return null;
+    const lines = products.slice(0, 25).map(p => {
+      const n = p?.name || p?.title || p?.productName || '';
+      return n ? `  - ${n}` : null;
+    }).filter(Boolean).join('\n');
+    return lines ? `"${term}" — currently on The Whisky Exchange:\n${lines}` : null;
+  }));
+  const valid = blocks.filter(Boolean);
+  return valid.length
+    ? '\n\nLIVE PRODUCT DATA FROM THE WHISKY EXCHANGE:\n' + valid.join('\n\n') +
+      '\n(These are real current products — reference them specifically in your response.)'
+    : '';
+}
+
+// Ask Claude (Haiku) to enumerate a distillery's full range from training knowledge
+async function enumerateRangeWithClaude(distilleryName) {
+  const key = loadApiKey();
+  if (!key) return null;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: `List every whisky expression ever released by ${distilleryName} as exhaustively as possible. Cast the net wide — it is better to include something you are slightly uncertain about than to omit it.
+
+Cover ALL of the following:
+- Core permanent range
+- Annual and limited releases
+- Every single cask finish variant you know of (Sauternes, Madeira, Marsala, Calvados, Port, Muscat, Cognac, Mezcal, STR, wine cask types, spirit cask types — every one)
+- Vintage dated releases by distillation year
+- Festival bottlings (Fèis Ìle etc.) and club releases
+- Heavily peated or special mash bill variants
+- Collaborative or commemorative releases
+
+Format as a plain bulleted list, one expression per line. Names only, no descriptions.`,
+        }],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = (data.content?.[0]?.text || '').trim();
+    if (!text) return null;
+    return `${distilleryName} expressions (from Claude training knowledge — may not include very recent releases):\n${text}`;
+  } catch { return null; }
+}
+
 // ── Pour? / Òstair ─────────────────────────────────────────────────────────────
 
-function buildSommPrompt(query, tastings) {
+function buildSommPrompt(query, tastings, tweContext) {
   const scaleLine = (label, ll, rl, val) =>
     val != null ? `  ${label}: ${val}/7 (${ll} → ${rl})` : null;
 
@@ -5193,7 +5504,7 @@ function buildSommPrompt(query, tastings) {
   const currencySym = CURRENCY_SYMBOLS[currency] || currency;
   return `You are the Òstair — a trusted whisky guide with deep expertise across all styles and regions. Your name comes from the Gaelic word for an innkeeper or tavern-keeper: someone who knows their cellar, knows their guests, and knows exactly what to pour. You know this person's palate intimately from their tasting history — not as data points, but as a real picture of what gives them genuine pleasure.
 
-IMPORTANT: When mentioning prices or budgets, always use ${currency} (${currencySym}). Never switch to a different currency.
+IMPORTANT: When mentioning prices or budgets, always use ${currency} (${currencySym}). Never switch to a different currency.${tweContext || ''}
 
 The person asks: "${query}"
 
@@ -5206,10 +5517,12 @@ GUIDELINES:
 - Be warm, confident, and direct — like a trusted friend, not a system
 - Always anchor your recommendation to something specific from their history — reference actual bottles they've tried, scores they've given, patterns you've noticed
 - Write in second person (you/your)
-- 2–3 short paragraphs of flowing prose — no bullet points, no scores, no structure
+- For a simple recommendation: 2–3 paragraphs of flowing prose, no bullets, no scores
+- For a ranking or comparison of a full distillery range: organise into clear tiers with bold expression names. Give full reasoning for the top 2 tiers. For lower tiers, be concise — a sentence or two per expression or group is enough. Do not write exhaustive paragraphs for expressions that won't excite this drinker.
 - If they're asking what to pour for someone else, use their own history as context for calibration but make the recommendation for that person
 - The goal is to remove decision anxiety, not add to it — make them feel confident about the choice
-- Do NOT give generic whisky descriptions — everything must be personal to this drinker`;
+- Do NOT give generic whisky descriptions — everything must be personal to this drinker
+- Do NOT suggest asking follow-up questions or imply the conversation can continue — give a complete, self-contained answer`;
 }
 
 async function askSomm() {
@@ -5221,7 +5534,19 @@ async function askSomm() {
   if (!key) { showToast('Enter your Claude API key in settings first'); return; }
 
   const resultEl = document.getElementById('pourResult');
-  resultEl.innerHTML = `<div class="discover-loading"><div class="spinner"></div><div class="discover-loading-text">Thinking…</div></div>`;
+  const setStatus = t => resultEl.innerHTML =
+    `<div class="discover-loading"><div class="spinner"></div><div class="discover-loading-text">${t}</div></div>`;
+
+  setStatus('Looking up product range…');
+
+  // Fetch live TWE product data relevant to the query
+  const tweContext = await buildTWEContext(query);
+  if (tweContext?.includes('Whiskybase') || tweContext?.includes('Whisky Exchange'))
+    setStatus('Live data found — composing response…');
+  else if (tweContext?.includes('enumerated'))
+    setStatus('Range ready — composing response… (this may take 15–20 seconds)');
+  else
+    setStatus('Composing response…');
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -5234,8 +5559,8 @@ async function askSomm() {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: buildSommPrompt(query, tastings) }],
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: buildSommPrompt(query, tastings, tweContext) }],
       }),
     });
     if (!response.ok) throw new Error(`API error ${response.status}`);
@@ -5244,9 +5569,19 @@ async function askSomm() {
     // Render as flowing prose — split on double newlines for paragraphs
     const paragraphs = text.split(/\n{2,}/).filter(Boolean)
       .map(p => `<p>${p.replace(/\n/g, ' ').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>')}</p>`).join('');
+    const sourceLabel = tweContext?.includes('Whiskybase')
+      ? '<span style="color:var(--amber);">◉ Live Whiskybase data</span>'
+      : tweContext?.includes('Whisky Exchange')
+      ? '<span style="color:var(--amber);">◉ Live TWE data</span>'
+      : tweContext?.includes('DISTILLERY RANGE')
+      ? '<span style="color:var(--tf-dim);">◈ Claude enumeration</span>'
+      : '<span style="color:var(--tf-dim);">◎ Training data only</span>';
     resultEl.innerHTML = `
       <div class="pour-result-card">
-        <div class="pour-result-label">The Òstair</div>
+        <div class="pour-result-label" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>The Òstair</span>
+          <span style="font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">${sourceLabel}</span>
+        </div>
         <div class="pour-result-text">${paragraphs}</div>
       </div>`;
   } catch (err) {
@@ -6279,10 +6614,22 @@ function switchMapCountry(country) {
 }
 
 // ── Versioning ────────────────────────────────────────────────────────────────
-const APP_VERSION  = '2.0.1';
+const APP_VERSION  = '2.1.0';
 const DATA_VERSION = 2;
 
 const CHANGELOG = [
+  { version: '2.1.0', date: 'Thu Apr 24 2026', label: 'The Òstair — Range Intelligence',
+    changes: [
+      'Two-step distillery range lookup: when you ask about a specific distillery, the Òstair first calls Claude to enumerate the full range (all expressions, cask finishes, vintage releases, festival bottlings), then uses that list to give a comprehensive, accurate ranking against your palate.',
+      'Source indicator in the result card — ◉ Live Whiskybase, ◉ Live TWE, ◈ Claude enumeration, or ◎ Training data — so you always know what data powered the response.',
+      'Whiskybase API integration attempted first for distillery queries; TWE as fallback for style/trend queries (e.g. "blackberry whiskies").',
+      'Response token limit raised to 4000 for the Òstair — full distillery rankings now complete without truncation.',
+      'Enumeration uses Haiku for speed; main reasoning uses Sonnet for quality.',
+      'Lower tiers in rankings are concise; full reasoning reserved for top tiers.',
+      'Prompt instruction: do not suggest follow-up conversation — every response is self-contained.',
+      'The Òstair uses your preferred currency for all price estimates.',
+    ],
+  },
   { version: '2.0.1', date: 'Thu Apr 23 2026', label: 'Polish — Buttons & Padding',
     changes: [
       'Discard modal buttons now full-width and correctly sized',
