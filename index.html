@@ -1149,7 +1149,7 @@ select.field-input {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.1.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.1.1</div>
 
 <header class="app-header">
   <div>
@@ -5517,8 +5517,9 @@ GUIDELINES:
 - Be warm, confident, and direct — like a trusted friend, not a system
 - Always anchor your recommendation to something specific from their history — reference actual bottles they've tried, scores they've given, patterns you've noticed
 - Write in second person (you/your)
-- For a simple recommendation: 2–3 paragraphs of flowing prose, no bullets, no scores
-- For a ranking or comparison of a full distillery range: organise into clear tiers with bold expression names. Give full reasoning for the top 2 tiers. For lower tiers, be concise — a sentence or two per expression or group is enough. Do not write exhaustive paragraphs for expressions that won't excite this drinker.
+- For a simple recommendation: flowing prose only — do NOT open with a bold bottle name or title. Start directly with your reasoning.
+- For an explicit ranking or "rank all" request: organise into clear tiers with bold expression names. Full reasoning for top tiers, concise for lower tiers.
+- IMPORTANT WHISKY GEOGRAPHY: "Islands" means Scottish island distilleries OTHER than Islay — Talisker (Skye), Highland Park and Scapa (Orkney), Arran, Jura, Tobermory and Ledaig (Mull), Torabhaig (Skye), Isle of Raasay, Abhainn Dearg (Lewis), Isle of Harris. Islay is a completely separate region. Do not confuse them.
 - If they're asking what to pour for someone else, use their own history as context for calibration but make the recommendation for that person
 - The goal is to remove decision anxiety, not add to it — make them feel confident about the choice
 - Do NOT give generic whisky descriptions — everything must be personal to this drinker
@@ -5575,7 +5576,9 @@ async function askSomm() {
       ? '<span style="color:var(--amber);">◉ Live TWE data</span>'
       : tweContext?.includes('DISTILLERY RANGE')
       ? '<span style="color:var(--tf-dim);">◈ Claude enumeration</span>'
-      : '<span style="color:var(--tf-dim);">◎ Training data only</span>';
+      : tweContext?.includes('IMPORTANT: The user\'s question specifically concerns')
+      ? '<span style="color:var(--tf-dim);">◎ Live lookup failed</span>'
+      : '';
     resultEl.innerHTML = `
       <div class="pour-result-card">
         <div class="pour-result-label" style="display:flex;justify-content:space-between;align-items:center;">
@@ -6614,10 +6617,17 @@ function switchMapCountry(country) {
 }
 
 // ── Versioning ────────────────────────────────────────────────────────────────
-const APP_VERSION  = '2.1.0';
+const APP_VERSION  = '2.1.1';
 const DATA_VERSION = 2;
 
 const CHANGELOG = [
+  { version: '2.1.1', date: 'Thu Apr 24 2026', label: 'Òstair — Geography & Label Fixes',
+    changes: [
+      'Islands vs Islay distinction added to prompt — "Island scotch" now correctly returns Talisker, Highland Park, Arran etc., not Islay distilleries',
+      'Source label logic refined — no label shown for general queries where no lookup was attempted; "Live lookup failed" only shown when a distillery was named but Whiskybase and TWE both returned nothing',
+      'Simple recommendations no longer open with a bold bottle name — prose formatting restored for non-ranking queries',
+    ],
+  },
   { version: '2.1.0', date: 'Thu Apr 24 2026', label: 'The Òstair — Range Intelligence',
     changes: [
       'Two-step distillery range lookup: when you ask about a specific distillery, the Òstair first calls Claude to enumerate the full range (all expressions, cask finishes, vintage releases, festival bottlings), then uses that list to give a comprehensive, accurate ranking against your palate.',
