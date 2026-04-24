@@ -57,8 +57,8 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
 .btn-primary:hover { background: #b84510; }
 .btn-secondary { background: transparent; color: var(--tf-dim); border: 1px solid var(--border); }
 .btn-secondary:hover { background: var(--border); color: var(--tf); }
-.btn-danger { background: transparent; color: #555; border: 1px solid #bbb; }
-.btn-danger:hover { background: #555; color: white; }
+.btn-danger { background: transparent; color: #c0392b; border: 1px solid #e8b4b0; }
+.btn-danger:hover { background: #c0392b; color: white; border-color: #c0392b; }
 .btn-sm { padding: 5px 12px; font-size: 10px; }
 
 /* ── History ── */
@@ -211,7 +211,7 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
 .tasting-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .tasting-card-name { font-size: 15px; font-weight: 700; }
 .tasting-card-date { font-size: 11px; color: var(--tf-dim); }
-.tasting-card-meta { font-size: 11px; color: var(--tf-dim); margin-bottom: 8px; }
+.tasting-card-meta { font-size: 11px; color: var(--tf); margin-bottom: 8px; }
 .chip-row { display: flex; gap: 5px; flex-wrap: wrap; }
 .chip { background: var(--amber); color: white; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.06em; }
 .chip.outline { background: transparent; color: var(--amber); border: 1px solid var(--amber); }
@@ -259,16 +259,22 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 
 /* ── Currency-prefixed price input ── */
 .price-input-wrap { position: relative; }
-.price-cur-prefix {
-  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  font-size: 13px; color: var(--tf); pointer-events: none; z-index: 1; line-height: 1;
+.price-cur-btn {
+  position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; font-weight: 700; color: var(--tf);
+  background: transparent; border: 1px solid var(--border); border-radius: 3px;
+  padding: 2px 5px; cursor: pointer; z-index: 1; line-height: 1.3;
+  transition: border-color 0.12s; font-family: inherit;
 }
-.price-input-wrap .field-input { padding-left: 22px; }
+.price-cur-btn:hover { border-color: var(--tf-dim); }
+.price-input-wrap .field-input { padding-left: 38px; }
 
 /* ── Cask checkboxes ── */
 .cask-checks {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 7px 10px; margin-top: 2px;
+  display: flex; flex-wrap: nowrap; justify-content: space-between;
+  align-items: center; height: 33px; margin-top: 0;
 }
+.cask-check-label { flex: 1; justify-content: center; }
 .cask-check-label {
   display: flex; align-items: center; gap: 6px;
   font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
@@ -283,8 +289,10 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .section-body { padding: 12px 16px; }
 
 /* ── Info fields ── */
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .info-grid .span2 { grid-column: 1 / -1; }
+.info-grid .col-2of3 { grid-column: span 2; }
+@media (max-width: 480px) { .info-grid { grid-template-columns: 1fr 1fr; } .info-grid .col-2of3 { grid-column: span 1; } }
 .field-group { display: flex; flex-direction: column; gap: 4px; }
 .field-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tf-dim); height: 14px; display: flex; align-items: center; }
 .field-input, .field-select, .field-textarea {
@@ -490,7 +498,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 /* ── Detail view ── */
 .detail-header { background: var(--cream); border-radius: 6px; padding: 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-start; }
 .detail-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.detail-meta { font-size: 12px; color: var(--tf-dim); }
+.detail-meta { font-size: 12px; color: var(--tf); }
 .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .detail-section { background: var(--cream); border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
 .detail-sec-head { padding: 8px 14px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.03); }
@@ -541,8 +549,9 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 
 /* ── Single cask ── */
 .sc-badge {
-  background: var(--dark); color: var(--tb); font-size: 9px; font-weight: 700;
-  letter-spacing: 0.08em; padding: 2px 6px; border-radius: 3px; white-space: nowrap;
+  display: inline-block; background: var(--dark); color: var(--tb); font-size: 8px; font-weight: 700;
+  letter-spacing: 0.08em; padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+  text-transform: uppercase; vertical-align: middle; flex-shrink: 0;
 }
 .detail-notes { font-size: 13px; line-height: 1.7; color: var(--tf); white-space: pre-wrap; }
 .detail-back-btn { display: flex; align-items: center; gap: 6px; color: var(--amber); font-size: 12px; font-weight: 700; cursor: pointer; background: none; border: none; font-family: inherit; margin-bottom: 16px; padding: 0; letter-spacing: 0.06em; }
@@ -581,7 +590,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 
 /* ── Distillery link ── */
 .dist-link {
-  cursor: pointer; border-bottom: 1px dotted var(--tf-dim);
+  cursor: pointer; font-weight: 600; border-bottom: 1px dotted var(--tf-dim);
   transition: color 0.12s, border-color 0.12s;
 }
 @media (hover: hover) { .dist-link:hover { color: var(--amber); border-bottom-color: var(--amber); } }
@@ -1149,7 +1158,7 @@ select.field-input {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.1.1</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.3.0</div>
 
 <header class="app-header">
   <div>
@@ -1406,6 +1415,10 @@ select.field-input {
                 </div>
               </div>
               <div class="field-group">
+                <label class="field-label">Colour</label>
+                <input type="text" class="field-input" id="f-colour" placeholder="e.g. Deep amber" autocomplete="off">
+              </div>
+              <div class="field-group">
                 <label class="field-label">Type</label>
                 <select class="field-input" id="f-type" onchange="onTypeChange()">
                   <option value="">Select type</option>
@@ -1438,11 +1451,7 @@ select.field-input {
           </div>
           <div class="section-body">
             <div class="info-grid">
-              <!-- Row 1: Year | Cask Type -->
-              <div class="field-group">
-                <label class="field-label">Distillation Year</label>
-                <input type="text" class="field-input" id="f-cask-ays" placeholder="e.g. 2012" autocomplete="off">
-              </div>
+              <!-- Row 1: Cask Type | Cask # | Location -->
               <div class="field-group">
                 <label class="field-label">Cask Type</label>
                 <div class="distillery-wrap">
@@ -1454,26 +1463,20 @@ select.field-input {
                   <div class="distillery-dropdown" id="caskTypeDropdown"></div>
                 </div>
               </div>
-              <!-- Row 2: Cask # | Current Location -->
               <div class="field-group">
                 <label class="field-label">Cask #</label>
-                <input type="text" class="field-input" id="f-cask-number" placeholder="e.g. 1234" autocomplete="off">
+                <input type="text" class="field-input" id="f-cask-number" placeholder="e.g. 1234" autocomplete="off"
+                  oninput="const sc=document.getElementById('f-sc-cask-num');if(sc){sc.value=this.value?'#'+this.value.replace(/^#+/,''):'';}">
               </div>
               <div class="field-group">
                 <label class="field-label">Current Location</label>
                 <input type="text" class="field-input" id="f-cask-location" placeholder="e.g. Dunnage Warehouse 3" autocomplete="off">
               </div>
-              <!-- Row 3: Price (with £/$) | RLA -->
+              <!-- Row 2: Price | RLA | Price/RLA calc -->
               <div class="field-group">
-                <div class="field-label-row">
-                  <label class="field-label" id="caskPriceLabel">Price</label>
-                  <div class="cur-toggle">
-                    <button type="button" class="cur-btn active" id="curBtnGBP" onclick="setCaskCurrency('GBP')">£</button>
-                    <button type="button" class="cur-btn"        id="curBtnUSD" onclick="setCaskCurrency('USD')">$</button>
-                  </div>
-                </div>
+                <label class="field-label" id="caskPriceLabel">Price</label>
                 <div class="price-input-wrap">
-                  <span class="price-cur-prefix" id="caskPricePrefix">£</span>
+                  <button type="button" class="price-cur-btn" id="caskPricePrefix" onclick="cycleCaskCurrency()" title="Click to change currency">£</button>
                   <input type="text" inputmode="decimal" class="field-input" id="f-cask-price"
                     placeholder="e.g. 220,000"
                     oninput="updateCaskCalc()"
@@ -1486,18 +1489,17 @@ select.field-input {
                 <input type="number" class="field-input" id="f-cask-rla" placeholder="e.g. 285"
                   min="0" oninput="updateCaskCalc()">
               </div>
-              <!-- Row 3: Price/RLA (calculated) | Bulk Litres -->
               <div class="field-group">
                 <label class="field-label" id="priceRlaLabel">Price / RLA</label>
                 <input type="text" class="field-input calc-field" id="f-cask-price-rla"
                   placeholder="auto-calculated" readonly tabindex="-1">
               </div>
+              <!-- Row 3: Bulk Litres | Outturn calc | Price/70cl calc -->
               <div class="field-group">
                 <label class="field-label">Bulk Litres</label>
                 <input type="number" class="field-input" id="f-cask-bulk" placeholder="e.g. 520"
                   min="0" oninput="updateCaskCalc()">
               </div>
-              <!-- Row 4: Outturn (calc) | Price per 70cl (calc) -->
               <div class="field-group">
                 <label class="field-label">Outturn (70cl bottles)</label>
                 <input type="text" class="field-input calc-field" id="f-cask-outturn"
@@ -1508,8 +1510,8 @@ select.field-input {
                 <input type="text" class="field-input calc-field" id="f-cask-cost70-display"
                   placeholder="auto-calculated" readonly tabindex="-1">
               </div>
-              <!-- Row 5: Cask flags | Last regauge date -->
-              <div class="field-group">
+              <!-- Row 4: Cask History (2 cols) | Last Regauge -->
+              <div class="field-group col-2of3">
                 <label class="field-label">Cask History</label>
                 <div class="cask-checks">
                   <label class="cask-check-label"><input type="checkbox" class="cask-flag-cb" value="reracked"> Re-racked</label>
@@ -1522,7 +1524,7 @@ select.field-input {
                 <label class="field-label">Date of Last Regauge</label>
                 <input type="date" class="field-input" id="f-cask-regauge-date">
               </div>
-              <!-- Comments spans full width -->
+              <!-- Comments — full width -->
               <div class="field-group span2">
                 <label class="field-label">Comments</label>
                 <textarea class="field-input" id="f-cask-comments" rows="3"
@@ -2197,8 +2199,8 @@ function renderHistory() {
 // ── Form building ─────────────────────────────────────────────────────────────
 
 function resetForm() {
-  ['f-name','f-taster','f-distillery','f-region','f-age','f-abv','f-notes','f-score',
-   'f-type','f-bottler','f-sc-cask-num','f-cask-number','f-cask-location','f-cask-type','f-cask-ays','f-cask-rla','f-cask-bulk',
+  ['f-name','f-taster','f-distillery','f-region','f-age','f-abv','f-colour','f-notes','f-score',
+   'f-type','f-bottler','f-sc-cask-num','f-cask-number','f-cask-location','f-cask-type','f-cask-rla','f-cask-bulk',
    'f-cask-price-rla','f-cask-cost70-display','f-cask-outturn','f-cask-price','f-cask-comments','f-cask-regauge-date']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.cask-flag-cb').forEach(cb => cb.checked = false);
@@ -2551,14 +2553,15 @@ function collectForm() {
     flavors:     [...flavorSet],
     notes:       document.getElementById('f-notes').value.trim(),
     score:       document.getElementById('f-score').value ? parseInt(document.getElementById('f-score').value) : null,
+    colour:      whiskyTitleCase(document.getElementById('f-colour').value.trim()),
     bottlingType: document.getElementById('f-type').value,
     bottler:     document.getElementById('f-bottler').value.trim(),
     singleCask:  document.getElementById('f-single-cask').checked,
-    scCaskNum:   document.getElementById('f-sc-cask-num').value.trim() || null,
+    scCaskNum:   (document.getElementById('f-sc-cask-num').value.trim().replace(/^#+/, '') || null),
     caskNumber:  document.getElementById('f-cask-number').value.trim() || null,
     caskLocation:document.getElementById('f-cask-location').value.trim() || null,
     caskType:    document.getElementById('f-cask-type').value.trim(),
-    caskAYS:     document.getElementById('f-cask-ays').value.trim(),
+    caskAYS:     document.getElementById('f-dist-year')?.value.trim() || null,
     caskRLA:     document.getElementById('f-cask-rla').value ? parseFloat(document.getElementById('f-cask-rla').value) : null,
     caskBulk:    document.getElementById('f-cask-bulk').value ? parseFloat(document.getElementById('f-cask-bulk').value) : null,
     caskOutturn:   (() => { const b = parseFloat(document.getElementById('f-cask-bulk')?.value) || 0; return b ? Math.floor(b / 0.7) : null; })(),
@@ -2580,13 +2583,14 @@ function populateForm(t) {
   set('f-name',t.name); set('f-taster',t.taster); set('f-date',t.date);
   set('f-distillery',t.distillery); set('f-region',t.region);
   set('f-age',t.age); set('f-dist-year',t.distYear); set('f-abv',t.abv); set('f-notes',t.notes);
+  set('f-colour', t.colour);
   set('f-type', t.bottlingType); onTypeChange();
   set('f-bottler', t.bottler);
   const scCb = document.getElementById('f-single-cask');
   if (scCb) { scCb.checked = !!t.singleCask; toggleSingleCask(!!t.singleCask); }
   if (t.scCaskNum) set('f-sc-cask-num', t.scCaskNum);
   set('f-cask-number', t.caskNumber); set('f-cask-location', t.caskLocation);
-  set('f-cask-type', t.caskType); set('f-cask-ays', t.caskAYS);
+  set('f-cask-type', t.caskType);
   set('f-cask-rla', t.caskRLA); set('f-cask-bulk', t.caskBulk);
   if (t.caskCurrency) setCaskCurrency(t.caskCurrency);
   if (t.caskPrice) {
@@ -2651,7 +2655,7 @@ function renderDetail(id) {
   const fams = [t.family1,t.family2,t.family3].filter(Boolean)
     .map(v=>FAMILIES.find(f=>f.value===v)?.label||v);
   const dateStr = t.date ? new Date(t.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : '';
-  const meta = [t.region,t.age,t.abv?(t.abv+(t.abv.includes('%')?'':'%')):''].filter(Boolean).join(' · ');
+  const meta = [t.region,t.age,t.abv?(t.abv+(t.abv.includes('%')?'':'%')):'',t.colour].filter(Boolean).join(' · ');
 
   const scaleHtml = (label, ll, rl, val) => {
     const v = val ?? t[label];
@@ -2671,16 +2675,16 @@ function renderDetail(id) {
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
             <div class="detail-name">${esc(t.name||'Unnamed')}</div>
             ${t.bottlingType ? `<span class="type-badge ${t.bottlingType}">${{ob:'OB',ib:'IB',cask:'Cask',other:'Other'}[t.bottlingType]||''}</span>` : ''}
-            ${t.singleCask ? `<span class="sc-badge">SC${t.scCaskNum ? ' · #'+esc(t.scCaskNum) : ''}</span>` : ''}
+            ${t.singleCask ? `<span class="sc-badge">SC${t.scCaskNum ? ' · #'+esc(t.scCaskNum.replace(/^#+/,'')) : ''}</span>` : ''}
           </div>
           ${t.score!=null?`<div style="font-size:28px;font-weight:700;color:var(--tf);line-height:1;flex-shrink:0;">${t.score}<span style="font-size:13px;color:var(--tf-dim);font-weight:400;">/100</span></div>`:''}
         </div>
         ${t.distillery?`<div class="detail-meta" style="margin-top:4px;"><span class="dist-link" data-d="${esc(t.distillery)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(t.distillery)}</span>${meta?' · '+esc(meta):''}</div>`:(meta?`<div class="detail-meta" style="margin-top:4px;">${esc(meta)}</div>`:'')}
-        ${t.bottler?`<div class="detail-meta" style="margin-top:2px;">${t.bottlingType==='cask'?'Cask owner: ':'Bottled by: '}${esc(t.bottler)}</div>`:''}
+        ${t.bottler?`<div class="detail-meta" style="margin-top:2px;">${t.bottlingType==='cask'?'Cask owner: ':t.bottlingType==='other'?'Notes: ':'Bottled by: '}${esc(t.bottler)}</div>`:''}
         <div class="detail-meta" style="margin-top:2px;">${[dateStr,t.taster].filter(Boolean).map(esc).join(' · ')}</div>
         <div class="detail-actions" style="margin-top:14px;justify-content:flex-start;">
           <button class="btn btn-secondary btn-sm" onclick="copySummary('${t.id}')">Copy</button>
-          <button class="btn btn-secondary btn-sm" onclick="showEditForm('${t.id}')">Edit</button>
+          <button class="btn btn-primary btn-sm" onclick="showEditForm('${t.id}')">Edit</button>
           <button class="btn btn-danger btn-sm" onclick="confirmDelete('${t.id}')">Delete</button>
         </div>
       </div>
@@ -2828,7 +2832,7 @@ function generateSummary(t) {
   lines.push(title + scoreStr);
 
   const distYearStr = t.distYear ? `${t.distYear}` : '';
-  const meta = [t.distillery, t.region, ageStr, distYearStr, abvStr].filter(Boolean).join(' · ');
+  const meta = [t.distillery, t.region, ageStr, distYearStr, abvStr, t.colour].filter(Boolean).join(' · ');
   if (meta) lines.push(meta);
 
   const byLine = [t.taster ? `Tasted by ${t.taster}` : '', dateStr].filter(Boolean).join(', ');
@@ -3860,11 +3864,19 @@ document.addEventListener('click', e => {
 
 let _caskCurrency = 'GBP';
 
+const CURRENCY_CYCLE = ['GBP','USD'];
+
 function setCaskCurrency(code) {
   _caskCurrency = code;
-  document.getElementById('curBtnGBP')?.classList.toggle('active', code === 'GBP');
-  document.getElementById('curBtnUSD')?.classList.toggle('active', code === 'USD');
+  const sym = CURRENCY_SYMBOLS[code] || code;
+  const btn = document.getElementById('caskPricePrefix');
+  if (btn) btn.textContent = sym;
   updateCaskCalc();
+}
+
+function cycleCaskCurrency() {
+  const idx = CURRENCY_CYCLE.indexOf(_caskCurrency);
+  setCaskCurrency(CURRENCY_CYCLE[(idx + 1) % CURRENCY_CYCLE.length]);
 }
 
 // ── Cask type typeahead ───────────────────────────────────────────────────────
@@ -4337,6 +4349,7 @@ function buildRecommendationPrompt(tastings) {
       t.age        ? `  Age: ${t.age}` : null,
       t.distYear    ? `  Distillation Year: ${t.distYear}` : null,
       t.abv        ? `  ABV: ${t.abv}` : null,
+      t.colour     ? `  Colour: ${t.colour}` : null,
       t.score != null ? `  Score: ${t.score}/100` : null,
       scaleLine('Alcohol integration',  'Cool/Integrated', 'Hot/Prickly', t.alcoholInt),
       scaleLine('Body',                 'Light',           'Heavy',        t.axisLH),
@@ -4629,12 +4642,22 @@ function onTypeChange() {
   const caskSection  = document.getElementById('caskSection');
   const priceLabel   = document.getElementById('priceRlaLabel');
   if (!bottlerGroup) return;
-  const showBottler = type === 'ib' || type === 'cask';
+  const showBottler = type === 'ib' || type === 'cask' || type === 'other';
   bottlerGroup.style.display  = showBottler ? '' : 'none';
-  if (bottlerLabel) bottlerLabel.textContent = type === 'cask' ? 'Cask Owner / Broker' : 'Bottler';
+  if (bottlerLabel) bottlerLabel.textContent = type === 'cask' ? 'Cask Owner / Broker' : type === 'other' ? 'Notes' : 'Bottler';
   const bottlerInput = document.getElementById('f-bottler');
-  if (bottlerInput) bottlerInput.placeholder = type === 'cask' ? 'e.g. Mark Littler Ltd' : 'e.g. Gordon & MacPhail';
+  if (bottlerInput) bottlerInput.placeholder = type === 'cask' ? 'e.g. Mark Littler Ltd' : type === 'other' ? 'Any additional context' : 'e.g. Gordon & MacPhail';
   if (caskSection)  caskSection.style.display = type === 'cask' ? '' : 'none';
+  // Auto-check and grey Single Cask for Cask Sample — it's implicit
+  const scCb = document.getElementById('f-single-cask');
+  const scWrap = scCb?.closest('div[style*="height"]');
+  if (type === 'cask') {
+    if (scCb) { scCb.checked = true; scCb.disabled = true; toggleSingleCask(true); }
+    if (scWrap) scWrap.style.opacity = '0.45';
+  } else {
+    if (scCb && scCb.disabled) { scCb.disabled = false; }
+    if (scWrap) scWrap.style.opacity = '';
+  }
   updateCaskCalc();
 }
 
@@ -4765,6 +4788,7 @@ function buildFitCheckPrompt(query, details, tastings) {
       t.age        ? `  Age: ${t.age}` : null,
       t.distYear    ? `  Distillation Year: ${t.distYear}` : null,
       t.abv        ? `  ABV: ${t.abv}` : null,
+      t.colour     ? `  Colour: ${t.colour}` : null,
       t.score != null ? `  Score: ${t.score}/100` : null,
       scaleLine('Body', 'Light', 'Heavy', t.axisLH),
       scaleLine('Texture', 'Dry', 'Coating', t.axisDC),
@@ -5030,6 +5054,7 @@ function buildFitCheckPhotoPrompt(extraText, tastings) {
       t.region     ? `  Region: ${t.region}` : null,
       t.age        ? `  Age: ${t.age}` : null,
       t.abv        ? `  ABV: ${t.abv}` : null,
+      t.colour     ? `  Colour: ${t.colour}` : null,
       t.score != null ? `  Score: ${t.score}/100` : null,
       scaleLine('Body', 'Light', 'Heavy', t.axisLH),
       scaleLine('Texture', 'Dry', 'Coating', t.axisDC),
@@ -6617,10 +6642,40 @@ function switchMapCountry(country) {
 }
 
 // ── Versioning ────────────────────────────────────────────────────────────────
-const APP_VERSION  = '2.1.1';
+const APP_VERSION  = '2.3.0';
 const DATA_VERSION = 2;
 
 const CHANGELOG = [
+  { version: '2.3.0', date: 'Thu Apr 24 2026', label: 'Cask Details — Layout & Deduplication',
+    changes: [
+      'Cask Details restructured to proper 3-col grid: identification (Type · # · Location), pricing (Price · RLA · Price/RLA), volume/yield (Bulk · Outturn · Price/70cl), then Cask History spanning 2 cols with Last Regauge in the third',
+      'Distillation Year removed from Cask Details — mirrors from main form field',
+      'Cask # now mirrors to Single Cask field above as you type',
+      'Single Cask auto-checks and greys out when Type = Cask Sample',
+      'Cask History checkboxes in a single row, vertically aligned with adjacent input, evenly distributed across the full width',
+      'Currency toggle replaced with a clickable £/$ symbol box inside the price field — clean, unshaded, cycles on click',
+    ],
+  },
+  { version: '2.2.1', date: 'Thu Apr 24 2026', label: 'Polish — Cards & Badges',
+    changes: [
+      'SC badge resized to match OB/IB badge exactly — same font size, padding and vertical alignment',
+      'Double-hash bug fixed — cask number stored without leading # and displayed with exactly one #',
+      'Detail view subtext (distillery, region, age, ABV) changed from grey to full dark — size difference creates hierarchy without needing colour fade',
+      'History card meta line also darkened from var(--tf-dim) to var(--tf)',
+      'Distillery name bold (font-weight 600) in both history cards and detail view',
+      'Detail view buttons: Edit is now primary amber, Delete has red tint',
+      'Delete confirmation modal buttons full-width, matching Discard modal',
+    ],
+  },
+  { version: '2.2.0', date: 'Thu Apr 24 2026', label: 'Form — Colour, 3-Col Layout & Polish',
+    changes: [
+      'Colour field added to the tasting form — auto title-cased on save, appears in the detail view meta line alongside region, age and ABV, and is passed to the Òstair and Spin the Bottle prompts',
+      'Whisky Information section is now a 3-column grid (falls back to 2-col below 480px) — fields read as: Name · Tasted By · Date / Distillery · Region · Age / Dist Year · ABV · Single Cask / Colour · Type · Bottler',
+      'Bottler field now appears for "Other" type, labelled "Notes" with placeholder "Any additional context"',
+      '"Notes:" prefix in detail view when type is Other (was "Bottled by:")',
+      'Delete confirmation modal buttons now full-width, matching Discard modal style',
+    ],
+  },
   { version: '2.1.1', date: 'Thu Apr 24 2026', label: 'Òstair — Geography & Label Fixes',
     changes: [
       'Islands vs Islay distinction added to prompt — "Island scotch" now correctly returns Talisker, Highland Park, Arran etc., not Islay distilleries',
@@ -7152,10 +7207,10 @@ renderSpinFavs();
   <div class="modal-card" style="max-width:340px;">
     <div class="modal-title">Delete Tasting</div>
     <div class="modal-body" id="deleteModalBody">Are you sure you want to delete this tasting? This cannot be undone.</div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button class="btn btn-secondary btn-sm" onclick="closeDeleteModal()">Cancel</button>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeDeleteModal()" style="flex:1;justify-content:center;">Cancel</button>
       <button class="btn btn-sm" id="deleteModalConfirm"
-        style="background:#c0392b;color:white;border:none;" onclick="executeDelete()">Delete</button>
+        style="flex:1;justify-content:center;background:#c0392b;color:white;border:none;" onclick="executeDelete()">Delete</button>
     </div>
   </div>
 </div>
