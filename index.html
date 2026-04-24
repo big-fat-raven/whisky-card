@@ -1480,7 +1480,7 @@ select.field-input {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.22.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.24.0</div>
 
 <header class="app-header">
   <div>
@@ -3558,11 +3558,13 @@ ${raw}`
   }
 }
 
-// ── Whisky Hunter — shared fetch helper (CORS proxy for file:// origin) ───────
+// ── Shared fetch helper (CORS proxy cascade for file:// origin) ───────────────
 
-// Whisky Hunter sends no CORS headers, so fetches from a file:// page are blocked.
-// We try direct first (in case CORS is open), then fall through the same proxy list
-// that the Whiskybase code uses — whichever responds first wins.
+// CORS is blocked on file:// pages, so we proxy everything.
+// Strategy: try direct first (instant CORS rejection = fast fail), then race
+// all proxies simultaneously with Promise.any — use whichever responds first.
+// This cuts latency from sequential worst-case to fastest-proxy best-case.
+
 const _WH_PROXIES = [
   (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
   (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
@@ -3570,33 +3572,58 @@ const _WH_PROXIES = [
   (u) => `https://thingproxy.freeboard.io/fetch/${u}`,
 ];
 
+function _makeWhResult(text) {
+  return {
+    text,
+    json() {
+      try { return JSON.parse(text); }
+      catch {
+        const m = text.match(/^\s*(\{[\s\S]*\}|\[[\s\S]*\])\s*$/);
+        if (m) return JSON.parse(m[1]);
+        throw new Error('Not JSON');
+      }
+    }
+  };
+}
+
+function _isHtmlError(text) {
+  const t = text.trim();
+  return t.startsWith('<!DOCTYPE') || t.startsWith('<html');
+}
+
 // Returns { text, json } helpers on success, or throws.
 async function _whFetch(targetUrl) {
-  const candidates = [targetUrl, ..._WH_PROXIES.map(fn => fn(targetUrl))];
-  for (const url of candidates) {
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
-      if (!res.ok) continue;
+  const isHtmlEndpoint = targetUrl.includes('/retail/');
+
+  // 1. Direct fetch — CORS rejection is instant, so this adds negligible delay
+  try {
+    const res = await fetch(targetUrl, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
       const text = await res.text();
-      if (!text) continue;
-      // For JSON endpoints (API), skip if a proxy returns an HTML error page instead of JSON
-      const isHtml = text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html');
-      if (isHtml && !targetUrl.includes('/retail/')) continue;
-      return {
-        text,
-        json() {
-          try { return JSON.parse(text); }
-          catch {
-            // Some proxies wrap JSON in HTML — try to extract
-            const m = text.match(/^\s*(\{[\s\S]*\}|\[[\s\S]*\])\s*$/);
-            if (m) return JSON.parse(m[1]);
-            throw new Error('Not JSON');
-          }
-        }
-      };
-    } catch { /* try next */ }
+      if (text && (isHtmlEndpoint || !_isHtmlError(text))) return _makeWhResult(text);
+    }
+  } catch { /* CORS or timeout — expected */ }
+
+  // 2. Race all proxies — first valid response wins, rest are cancelled
+  const ac = new AbortController();
+  const proxied = _WH_PROXIES.map(fn =>
+    fetch(fn(targetUrl), { signal: ac.signal })
+      .then(async res => {
+        if (!res.ok) throw new Error('not ok');
+        const text = await res.text();
+        if (!text) throw new Error('empty');
+        if (!isHtmlEndpoint && _isHtmlError(text)) throw new Error('html error page');
+        return text;
+      })
+  );
+
+  try {
+    const text = await Promise.any(proxied);
+    ac.abort(); // cancel remaining in-flight requests
+    return _makeWhResult(text);
+  } catch {
+    throw new Error('All fetch attempts failed for ' + targetUrl);
   }
-  throw new Error('All fetch attempts failed for ' + targetUrl);
 }
 
 // ── Whisky Hunter secondary market data ──────────────────────────────────────
@@ -5867,6 +5894,7 @@ INSTRUCTIONS:
 - CRITICAL — NO SOLD-OUT VINTAGE RELEASES: Do not recommend specific aged vintage releases from independent bottlers (e.g. "Cadenhead's Authentic Collection Bunnahabhain 25 Year Old 1997", "Cadenhead's Authentic Collection Springbank 27 Year Old 1996") unless you are certain that exact expression is currently in stock on TWE. Cadenhead's Authentic Collection, Berry Bros, Signatory etc. release hundreds of one-off vintages — naming a specific one is almost always a dead end. Instead recommend a current named series (e.g. "Cadenhead's World Whiskies", "Signatory Vintage Cask Strength Collection", "Gordon & MacPhail Connoisseurs Choice" current releases) and let the user browse what's available in that range.
 - CRITICAL PRICE: For gbpPrice, provide the actual current GBP retail price as listed on The Whisky Exchange. This must be a real price you are confident about — not a range, not a guess. If you are not confident of the exact price, provide your best estimate but stay within 15% of the real price.
 - For tweUrl, provide the exact TWE product page path if you know it with confidence (e.g. "/p/12345/springbank-10-year-old"). TWE product URLs follow the pattern /p/{numeric-id}/{url-slug}. This is used to fetch the live price directly, so accuracy matters — if you're not confident in the exact path including the numeric ID, set to null rather than guessing.
+- CRITICAL REASONING TONE: The reasoning field is shown directly to the user — write it in second person, speaking to them ("Your Springbank 15 scored...", "You consistently favour...", "This will suit your preference for..."). Never write "the user", "they", or "their" — that sounds like you are talking about them rather than to them. Never mention TWE, price ranges, availability, retail stocking, or your own selection criteria in the reasoning — those are operational constraints, not user-facing explanations. Reasoning must be purely about flavour, aroma, structure, and sensory profile.
 
 Respond ONLY with a valid JSON array. No preamble, no explanation, no markdown fences. Each object must have exactly these keys:
 [
@@ -6100,10 +6128,10 @@ function verifyBadge(v) {
   switch (v.status) {
     case 'found':
       return v.exactMatch
-        ? '<span class="verify-ok">✓ Available on TWE</span>'
-        : '<span class="verify-warn">⚠ Similar results on TWE — verify exact bottle</span>';
+        ? '<span class="verify-ok">✓ Verified in stock</span>'
+        : '<span class="verify-warn">⚠ Check availability — exact match not confirmed</span>';
     case 'not_found':
-      return '<span class="verify-fail">✕ Not found on TWE</span>';
+      return '<span class="verify-fail">✕ May not be in stock</span>';
     default:
       return ''; // unverified / error — say nothing rather than confuse
   }
@@ -6754,35 +6782,47 @@ function extractStyleTerms(query) {
 
 // ── Whiskybase API (primary source for distillery ranges) ─────────────────────
 
-const WB_PROXIES = [
-  (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
-  (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  (u) => `https://thingproxy.freeboard.io/fetch/${u}`,
-];
-
+// Reuses _WH_PROXIES — race all proxies simultaneously, use fastest.
 async function wbFetch(path) {
   const base = 'https://www.whiskybase.com' + path;
-  // Try direct first (CORS might be open on API endpoints), then proxies
-  const urls = [base, ...WB_PROXIES.map(fn => fn(base))];
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, {
-        headers: { 'Accept': 'application/json, text/html, */*', 'X-Requested-With': 'XMLHttpRequest' },
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!res.ok) continue;
+  const hdrs = { 'Accept': 'application/json, text/html, */*', 'X-Requested-With': 'XMLHttpRequest' };
+
+  function _parseWb(text) {
+    try { return JSON.parse(text); } catch {}
+    const m = text.match(/^\s*(\{[\s\S]*\}|\[[\s\S]*\])\s*$/);
+    if (m) try { return JSON.parse(m[1]); } catch {}
+    return null;
+  }
+
+  // 1. Direct
+  try {
+    const res = await fetch(base, { headers: hdrs, signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
       const ct = res.headers.get('content-type') || '';
       if (ct.includes('json')) return await res.json();
-      const text = await res.text();
-      // Try JSON parse
-      try { return JSON.parse(text); } catch {}
-      // Try extracting JSON from HTML (some proxies wrap in HTML)
-      const m = text.match(/^\s*(\{[\s\S]*\}|\[[\s\S]*\])\s*$/);
-      if (m) try { return JSON.parse(m[1]); } catch {}
-    } catch {}
-  }
-  return null;
+      const parsed = _parseWb(await res.text());
+      if (parsed) return parsed;
+    }
+  } catch {}
+
+  // 2. Race proxies
+  const ac = new AbortController();
+  const proxied = _WH_PROXIES.map(fn =>
+    fetch(fn(base), { signal: ac.signal })
+      .then(async res => {
+        if (!res.ok) throw new Error('not ok');
+        const text = await res.text();
+        const parsed = _parseWb(text);
+        if (!parsed) throw new Error('no json');
+        return parsed;
+      })
+  );
+
+  try {
+    const result = await Promise.any(proxied);
+    ac.abort();
+    return result;
+  } catch { return null; }
 }
 
 async function fetchWhiskybaseDistilleryId(name) {
@@ -8015,6 +8055,15 @@ const APP_VERSION  = '2.11.0';
 const DATA_VERSION = 3;
 
 const CHANGELOG = [
+  { version: '2.24.0', label: 'Reasoning tone + verify badge fix', date: '2026-04-24', items: [
+    'Recommendation reasoning now speaks directly to you in second person — "Your Springbank 15 scored…" not "the user notes…". No more AI talking about you as if you\'re not there.',
+    'Reasoning is now strictly about flavour, aroma, and sensory profile — availability constraints, TWE stocking, and price considerations are operational rules for the AI, not explanations for you',
+    'Verify badge no longer says "TWE" — now reads "Verified in stock", "Check availability — exact match not confirmed", or "May not be in stock"',
+  ]},
+  { version: '2.23.0', label: 'Faster proxy fetching', date: '2026-04-24', items: [
+    'All external API calls now race proxies simultaneously instead of trying them sequentially — dramatically reduces wait time when the first proxy is slow or busy',
+    'Direct fetch (3s timeout) is attempted first; if CORS-blocked, all four proxies compete and the fastest valid response wins with the others cancelled',
+  ]},
   { version: '2.22.0', label: 'Whisky Companion + price cache + heart', date: '2026-04-24', items: [
     'Renamed to Society Obscura Whisky Companion',
     'Retail prices cached in localStorage for 24 hours — shared across Discover, Saved, and Detail so the same bottle never fetches twice in a day',
