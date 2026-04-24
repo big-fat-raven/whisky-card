@@ -180,6 +180,7 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
   background: var(--amber); cursor: pointer; box-shadow: 0 1px 5px rgba(0,0,0,0.25);
 }
 .fd-range-labels { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--tf-dim); margin-top: 5px; }
+.fd-range.fd-range-inverted { background: linear-gradient(to right, var(--amber) 0%, var(--amber) var(--fill,100%), var(--border) var(--fill,100%), var(--border) 100%); }
 .filter-drawer-footer { padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
 
 .hist-search-clear {
@@ -308,9 +309,9 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .scale-row:first-child { padding-top: 0; }
 .scale-ll { font-size: 12px; color: var(--tf); flex: 0 0 110px; }
 .scale-rl { font-size: 12px; color: var(--tf); flex: 0 0 90px; text-align: right; }
-.scale-circles { display: flex; gap: 16px; flex: 1; justify-content: center; }
+.scale-circles { display: flex; gap: 0; flex: 1; align-items: center; }
 
-/* ── Circle buttons — unified size ── */
+/* ── Circle buttons — unified size (kept for legacy/detail views) ── */
 .circ, .circ-sm {
   width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--amber);
   cursor: pointer; background: transparent; transition: background 0.1s, border-color 0.1s; padding: 0; flex-shrink: 0;
@@ -325,6 +326,57 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 }
 .circ-pop { animation: circPop 0.2s ease-out; }
 
+/* ── Scale sliders ── */
+.scale-slider-wrap {
+  position: relative; flex: 1; display: flex; align-items: center;
+}
+.scale-slider-center-tick {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px; height: 9px; border-radius: 1px;
+  background: rgba(0,0,0,0.18);
+  pointer-events: none; z-index: 1;
+}
+.scale-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; border-radius: 2px;
+  cursor: pointer; outline: none; border: none;
+  background: linear-gradient(to right,
+    var(--border) 0%,
+    var(--border) var(--fill-start, 50%),
+    var(--amber)  var(--fill-start, 50%),
+    var(--amber)  var(--fill-end,   50%),
+    var(--border) var(--fill-end,   50%),
+    var(--border) 100%);
+}
+.scale-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 4px; height: 16px; border-radius: 2px;
+  background: var(--amber);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  cursor: pointer; transition: height 0.1s, background 0.15s;
+}
+.scale-slider:active::-webkit-slider-thumb { height: 20px; }
+.scale-slider::-moz-range-thumb {
+  width: 4px; height: 16px; border-radius: 2px;
+  background: var(--amber); border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18); cursor: pointer;
+}
+.scale-slider::-moz-range-progress { background: var(--amber); height: 4px; border-radius: 2px; }
+.scale-slider::-moz-range-track { background: var(--border); height: 4px; border-radius: 2px; }
+/* Untouched state — grey thumb, flat track */
+.scale-slider[data-touched="false"]::-webkit-slider-thumb {
+  background: var(--border); box-shadow: none;
+}
+.scale-slider[data-touched="false"]::-moz-range-thumb {
+  background: var(--border); box-shadow: none;
+}
+/* Scale slider position value label */
+.scale-val-label {
+  font-size: 10px; font-weight: 700; color: var(--amber);
+  min-width: 14px; text-align: center; flex-shrink: 0;
+}
+
 /* ── Aromatic Behavior — label above, scale inline ── */
 .arom-item { padding: 9px 0; border-bottom: 1px solid rgba(0,0,0,0.07); }
 .arom-item:first-child { padding-top: 0; }
@@ -333,7 +385,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .arom-scale { display: flex; align-items: center; gap: 10px; }
 .arom-ll { font-size: 12px; color: var(--tf); flex: 0 0 78px; }
 .arom-rl { font-size: 12px; color: var(--tf); flex: 0 0 55px; text-align: right; }
-.arom-circles { display: flex; gap: 16px; flex: 1; justify-content: center; }
+.arom-circles { display: flex; gap: 0; flex: 1; align-items: center; }
 
 /* ── Structural Axes — inline 2-col grid ── */
 .axis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
@@ -346,7 +398,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .axis-label { font-size: 12px; color: var(--tf); white-space: nowrap; }
 .axis-item .axis-label:first-child { flex: 0 0 62px; }
 .axis-item .axis-label:last-child  { flex: 0 0 68px; text-align: right; }
-.axis-circles { display: flex; gap: 7px; flex: 1; justify-content: center; }
+.axis-circles { display: flex; gap: 0; flex: 1; align-items: center; }
 
 /* ── Mouthfeel ── */
 .check-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 12px; }
@@ -359,21 +411,31 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .rank-row:last-child { margin-bottom: 0; }
 .rank-badge { width: 22px; height: 22px; border-radius: 50%; background: var(--amber); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 6px; }
 
-/* Custom family picker */
-.fam-picker { position: relative; flex: 1; min-width: 0; }
-.fam-trigger {
-  width: 100%; padding: 7px 28px 7px 9px; background: white; border: 1px solid var(--border);
-  border-radius: 4px; cursor: pointer; text-align: left; font-family: inherit;
-  display: flex; flex-direction: column; gap: 0; position: relative;
-  transition: border-color 0.15s; justify-content: center;
+/* Chemical Families chip grid */
+.fam-chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fam-chip {
+  position: relative; padding: 7px 10px 7px 10px;
+  border: 1.5px solid var(--border); border-radius: 5px;
+  background: white; cursor: pointer; text-align: left;
+  font-family: inherit; transition: border-color 0.12s, background 0.12s;
+  user-select: none;
 }
-.fam-trigger:after { content: '▾'; position: absolute; right: 9px; top: 50%; transform: translateY(-50%); color: var(--tf-dim); font-size: 11px; pointer-events: none; }
-.fam-trigger:hover, .fam-trigger.open { border-color: var(--amber); }
-.fam-trigger.open { border-radius: 4px 4px 0 0; }
-.fam-trigger-name { font-size: 13px; font-weight: 700; color: var(--tf); line-height: 1.3; }
-.fam-trigger-name.placeholder { font-weight: 400; color: var(--tf-dim); }
-.fam-trigger-desc { font-size: 10px; font-style: italic; color: var(--tf-dim); line-height: 1.3; margin-top: 1px; }
-.fam-trigger-desc:empty { display: none; }
+.fam-chip:hover { border-color: var(--amber); }
+.fam-chip.fam-selected { border-color: var(--amber); background: rgba(229,91,32,0.07); }
+.fam-chip-name { font-size: 12px; font-weight: 700; color: var(--tf); display: block; line-height: 1.3; }
+.fam-chip-desc { font-size: 10px; font-style: italic; color: var(--tf-dim); display: block; margin-top: 1px; line-height: 1.3; }
+.fam-chip-badge {
+  position: absolute; top: -7px; right: -7px;
+  width: 17px; height: 17px; border-radius: 50%;
+  background: var(--amber); color: white;
+  font-size: 10px; font-weight: 700; line-height: 17px; text-align: center;
+  display: none; pointer-events: none;
+}
+.fam-chip.fam-selected .fam-chip-badge { display: block; }
+.fam-rank-hint { font-size: 10px; color: var(--tf-dim); margin-bottom: 8px; }
+
+/* Legacy fam-menu (kept for JS compat, never shown) */
+.fam-picker { display: none; }
 .fam-menu {
   display: none; position: fixed; z-index: 9999;
   background: var(--cream); border: 1px solid var(--amber);
@@ -432,7 +494,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .subscale-scale { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
 .subscale-ll { font-size: 12px; color: var(--tf); flex: 0 0 80px; }
 .subscale-rl { font-size: 12px; color: var(--tf); flex: 0 0 68px; text-align: right; }
-.subscale-circles { display: flex; gap: 10px; flex: 1; justify-content: center; }
+.subscale-circles { display: flex; gap: 0; flex: 1; align-items: center; }
 .subscale-hint { display: flex; justify-content: space-between; }
 .subscale-hint span { font-size: 9.5px; font-style: italic; color: var(--tf-dim); }
 
@@ -1032,7 +1094,7 @@ select.field-input {
   .axis-item:last-child { border-bottom: none; }
   .info-grid { grid-template-columns: 1fr; }
   .info-grid .span2 { grid-column: 1; }
-  .scale-circles, .arom-circles, .subscale-circles { gap: 8px; }
+  .scale-circles, .arom-circles, .subscale-circles { gap: 0; }
 }
 
 /* ── Mobile ── */
@@ -1077,6 +1139,7 @@ select.field-input {
   background: var(--cream); border-radius: 6px;
   border: 1px solid var(--border); overflow: hidden;
   display: flex; flex-direction: column;
+  height: calc(100vh - 268px); min-height: 420px; max-height: 780px;
 }
 .map-panel-search-wrap {
   padding: 8px 10px; border-bottom: 1px solid var(--border);
@@ -1154,11 +1217,82 @@ select.field-input {
 .sourced-modal-name { font-size: 18px; font-weight: 700; color: var(--tf); margin-bottom: 4px; }
 .sourced-modal-tag { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tf-dim); margin-bottom: 16px; font-style: normal; }
 .sourced-modal-info { font-size: 13px; line-height: 1.65; color: var(--tf); margin-bottom: 20px; }
+
+/* ── Compare mode ─────────────────────────────────────────── */
+.tasting-card.compare-selectable { position: relative; }
+.tasting-card.compare-selectable:hover { cursor: pointer; }
+.tasting-card.compare-selected { border-left-color: var(--amber) !important; background: rgba(229,91,32,0.06); }
+.compare-check-wrap { position: absolute; top: 10px; right: 10px; pointer-events: none; }
+.compare-float-bar { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--dark); color: var(--tb); border-radius: 8px; padding: 10px 18px; display: none; gap: 12px; align-items: center; z-index: 500; box-shadow: 0 4px 24px rgba(0,0,0,0.35); white-space: nowrap; }
+.compare-float-count { font-size: 13px; color: var(--tb-dim); }
+.compare-header-row { display: flex; gap: 0; margin-bottom: 0; }
+.compare-col { flex: 1; min-width: 0; padding: 16px 14px; border-right: 1px solid var(--border); }
+.compare-col:last-child { border-right: none; }
+.compare-col-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.compare-col-meta { font-size: 11px; color: var(--tf-dim); margin-bottom: 2px; }
+.compare-col-score { font-size: 22px; font-weight: 700; color: var(--amber); margin-top: 8px; }
+.compare-section-label { font-size: 9px; letter-spacing: 0.1em; font-weight: 700; text-transform: uppercase; color: var(--tf-dim); padding: 10px 14px 4px; border-bottom: 1px solid var(--border); background: var(--cream); }
+.compare-row { display: flex; border-bottom: 1px solid var(--border); }
+.compare-row-label { width: 130px; flex-shrink: 0; font-size: 11px; color: var(--tf-dim); padding: 8px 14px; border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
+.compare-row-sublabel { font-size: 9px; color: var(--tf-dim); opacity: 0.7; margin-top: 2px; }
+.compare-cell { flex: 1; padding: 8px 14px; font-size: 12px; border-right: 1px solid var(--border); }
+.compare-cell:last-child { border-right: none; }
+.compare-cell.diff { background: rgba(229,91,32,0.07); font-weight: 600; }
+
+/* ── Leaflet map overrides ──────────────────────────────────── */
+#mapContainer { height: calc(100vh - 268px); min-height: 420px; max-height: 780px; border-radius: 6px; overflow: hidden; }
+.leaflet-container { background: #E5E2DC; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+.leaflet-control-zoom a { color: var(--dark); }
+.leaflet-control-zoom a:hover { color: var(--amber); }
+.leaflet-control-attribution { font-size: 9px !important; color: var(--tf-dim) !important; background: rgba(241,239,234,0.85) !important; }
+.leaflet-control-attribution a { color: var(--tf-dim) !important; }
+.map-region-label {
+  background: none !important; border: none !important; box-shadow: none !important;
+  font-size: 9px !important; font-weight: 700 !important; letter-spacing: 0.1em !important;
+  color: rgba(43,48,56,0.35) !important; white-space: nowrap; text-align: center;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  pointer-events: none;
+}
+.map-region-label div { background: none !important; border: none !important; box-shadow: none !important; }
+.map-leaflet-tooltip { background: var(--dark) !important; color: white !important; border: none !important; border-radius: 3px !important; padding: 3px 8px !important; font-size: 10px !important; font-weight: 600 !important; letter-spacing: 0.04em !important; box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important; white-space: nowrap !important; }
+.map-leaflet-tooltip::before { border-top-color: var(--dark) !important; }
+.map-leaflet-popup .leaflet-popup-content-wrapper { background: var(--cream); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); padding: 0; }
+.map-leaflet-popup .leaflet-popup-content { margin: 10px 14px; min-width: 120px; }
+.map-leaflet-popup .leaflet-popup-tip { background: var(--cream); box-shadow: none; }
+.map-leaflet-popup .leaflet-popup-close-button { color: var(--tf-dim) !important; top: 6px !important; right: 8px !important; }
+.map-leaflet-popup .leaflet-popup-close-button:hover { color: var(--amber) !important; }
+/* ── Library tab ───────────────────────────────────────────── */
+.library-card { background: var(--cream); border-radius: 6px; margin-bottom: 10px; border-left: 3px solid transparent; transition: box-shadow 0.15s, border-left-color 0.15s; }
+.library-card:hover { box-shadow: 0 3px 14px rgba(0,0,0,0.13); border-left-color: var(--amber); }
+.library-card.expanded { border-left-color: var(--amber); box-shadow: 0 3px 14px rgba(0,0,0,0.13); }
+.library-card-inner { padding: 13px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+.library-card-main { flex: 1; min-width: 0; }
+.library-card-name { font-size: 15px; font-weight: 700; }
+.library-card-meta { font-size: 11px; color: var(--tf); margin-top: 2px; }
+.library-card-chevron { font-size: 11px; color: var(--tf-dim); flex-shrink: 0; transition: transform 0.18s; }
+.library-card.expanded .library-card-chevron { transform: rotate(180deg); }
+.library-expand { border-top: 1px solid var(--border); padding: 14px 16px; display: none; }
+.library-card.expanded .library-expand { display: block; }
+.library-expand-notes { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; font-size: 12px; font-family: inherit; color: var(--tf); background: white; resize: vertical; min-height: 56px; line-height: 1.5; outline: none; box-sizing: border-box; }
+.library-expand-notes:focus { border-color: var(--amber); }
+.library-expand-notes::placeholder { color: var(--tf-dim); }
+.library-ai-desc { font-size: 12px; color: var(--tf); line-height: 1.65; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.library-ai-desc-label { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tf-dim); margin-bottom: 6px; }
+.library-desc-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 9px; border-radius: 4px; border: 1px solid var(--border); background: none; color: var(--tf-dim); cursor: pointer; font-family: inherit; transition: border-color 0.15s, color 0.15s; margin-top: 12px; padding-top: 12px; border-top: none; border: 1px solid var(--border); border-radius: 4px; padding: 3px 9px; margin-top: 10px; }
+.library-desc-btn:hover { border-color: var(--amber); color: var(--amber); }
+.library-qty-badge { background: var(--amber); color: #fff; border-radius: 4px; font-size: 13px; font-weight: 700; padding: 3px 9px; flex-shrink: 0; }
+.library-batch-item { padding: 4px 0 8px; }
+.library-batch-modal-card { max-width: 560px; max-height: 80vh; overflow-y: auto; }
+
+/* ── Photo-to-prefill button ──────────────────────────────── */
+.form-scan-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 9px; border-radius: 4px; border: 1px solid var(--border); background: none; color: var(--tf-dim); cursor: pointer; transition: border-color 0.15s, color 0.15s; font-family: inherit; }
+.form-scan-btn:hover { border-color: var(--amber); color: var(--amber); }
+.form-scan-btn:disabled { opacity: 0.5; cursor: default; }
 </style>
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.3.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.11.0</div>
 
 <header class="app-header">
   <div>
@@ -1172,8 +1306,9 @@ select.field-input {
         Discover <span class="beta-badge">Beta</span>
       </button>
       <button class="header-tab" id="tab-map" onclick="switchTab('map')">Map</button>
-      <button class="header-tab" id="tab-fitcheck" onclick="switchTab('fitcheck')">Spin?</button>
-      <button class="header-tab" id="tab-pour" onclick="switchTab('pour')">Pour?</button>
+      <button class="header-tab" id="tab-fitcheck" onclick="switchTab('fitcheck')">Spin</button>
+      <button class="header-tab" id="tab-pour" onclick="switchTab('pour')">Pour</button>
+      <button class="header-tab" id="tab-library" onclick="switchTab('library')">Library</button>
     </nav>
     <button class="settings-btn" onclick="openSettings()" title="Settings">⚙</button>
   </div>
@@ -1351,7 +1486,14 @@ select.field-input {
 
         <!-- Whisky Info -->
         <div class="section">
-          <div class="section-head"><span class="section-title">Whisky Information</span></div>
+          <div class="section-head" style="display:flex;align-items:center;justify-content:space-between;">
+            <span class="section-title">Whisky Information</span>
+            <button class="form-scan-btn" id="formScanBtn" onclick="document.getElementById('formScanInput').click()" title="Photograph a label to pre-fill this form">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Scan label
+            </button>
+            <input type="file" id="formScanInput" accept="image/*" capture="environment" style="display:none" onchange="onFormLabelScan(this)">
+          </div>
           <div class="section-body">
             <div class="info-grid">
               <div class="field-group">
@@ -1464,8 +1606,8 @@ select.field-input {
                 </div>
               </div>
               <div class="field-group">
-                <label class="field-label">Cask #</label>
-                <input type="text" class="field-input" id="f-cask-number" placeholder="e.g. 1234" autocomplete="off"
+                <label class="field-label">Cask # / Ref #</label>
+                <input type="text" class="field-input" id="f-cask-number" placeholder="e.g. 1234 or Ref ABC" autocomplete="off"
                   oninput="const sc=document.getElementById('f-sc-cask-num');if(sc){sc.value=this.value?'#'+this.value.replace(/^#+/,''):'';}">
               </div>
               <div class="field-group">
@@ -1638,7 +1780,7 @@ select.field-input {
         <div class="section">
           <div class="section-head">
             <span class="section-title">Dominant Chemical Families</span>
-            <span class="section-sub">(Rank top 3 by relative prominence)</span>
+            <span class="section-sub">(Tap to rank top 3)</span>
             <button class="help-btn" onclick="toggleHelp(this)" title="What is this?">?</button>
           </div>
           <div class="section-help">Rather than naming individual flavors, rank the three compound <em>families</em> that most define this whisky's character — esters (fruity, floral), aldehydes (cereal, grassy), phenols (smoky, medicinal), and so on. Think in terms of which molecular group is driving the experience, not just what fruit or flower it smells like.</div>
@@ -1840,7 +1982,7 @@ function showView(name) {
   window.scrollTo(0, 0);
   if (_dictating) stopDictation();
   // Header tabs: visible on main tab views
-  const onTab = (name === 'history' || name === 'discover' || name === 'fitcheck' || name === 'map' || name === 'pour');
+  const onTab = (name === 'history' || name === 'discover' || name === 'fitcheck' || name === 'map' || name === 'pour' || name === 'library');
   document.getElementById('headerTabs').style.display = onTab ? 'flex' : 'none';
 }
 function showHistory() {
@@ -2160,9 +2302,10 @@ function renderHistory() {
     const metaParts = [
       t.distillery ? `<strong class="dist-link" data-d="${esc(t.distillery)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(t.distillery)}</strong>` : '',
       t.region ? esc(t.region) : '',
-      esc(ageStr), distYearStr ? `<span style="color:var(--tf-dim);">${esc(distYearStr)}</span>` : '',
+      esc(ageStr), distYearStr ? esc(distYearStr) : '',
       esc(abvStr),
-      t.bottler ? esc(t.bottler) : ''
+      t.bottler ? esc(t.bottler) : '',
+      t.caskNumber ? `#${esc(t.caskNumber)}` : ''
     ].filter(Boolean);
     const metaLine = metaParts.join(' · ');
     // Taster · Date (right-aligned, same row as meta)
@@ -2232,12 +2375,10 @@ function refPanelHtml(cbClass) {
 }
 
 function buildForm() {
-  // Scale circles — generic selectors
+  // Scale sliders — generic selectors
   document.querySelectorAll('.scale-circles, .axis-circles, .arom-circles').forEach(el => {
-    const cls = el.classList.contains('axis-circles') ? 'circ-sm' : 'circ';
-    el.innerHTML = Array.from({length:7},(_,i)=>
-      `<button class="${cls}" type="button" data-v="${i+1}" onclick="setScale(this)"></button>`
-    ).join('');
+    el.innerHTML = `<div class="scale-slider-wrap"><input type="range" class="scale-slider" data-touched="false" min="1" max="7" step="1" value="4" onpointerdown="onSliderTouch(this)" oninput="onSliderInput(this)"></div>`;
+    updateSliderFill(el.querySelector('.scale-slider'));
   });
 
   // Mouthfeel
@@ -2245,29 +2386,19 @@ function buildForm() {
     `<label class="check-item"><input type="checkbox" class="mouthfeel-cb" value="${m}"><span class="check-label">${m}</span></label>`
   ).join('');
 
-  // Chemical Families — custom picker: bold name + plain descriptor
-  document.getElementById('familiesBody').innerHTML = [1,2,3].map(n=>
-    `<div class="rank-row">
-       <div class="rank-badge">${n}</div>
-       <div class="fam-picker" id="fam-picker-${n}">
-         <input type="hidden" id="f-fam${n}" value="">
-         <button type="button" class="fam-trigger" id="fam-trigger-${n}" onclick="toggleFamMenu(${n})">
-           <span class="fam-trigger-name placeholder" id="fam-tname-${n}">— Select —</span>
-           <span class="fam-trigger-desc" id="fam-tdesc-${n}"></span>
-         </button>
-         <div class="fam-menu" id="fam-menu-${n}">
-           <div class="fam-option placeholder" data-slot="${n}" data-idx="-1" onclick="selectFamByIdx(this)">
-             <span class="fam-option-name">— Select —</span>
-           </div>
-           ${FAMILIES.map((f,i)=>`
-             <div class="fam-option" data-slot="${n}" data-idx="${i}" onclick="selectFamByIdx(this)">
-               <span class="fam-option-name">${esc(f.label)}</span>
-               <span class="fam-option-desc">${esc(f.desc)}</span>
-             </div>`).join('')}
-         </div>
-       </div>
-     </div>`
-  ).join('');
+  // Chemical Families — tap-to-rank chip grid
+  // Hidden inputs keep same data model
+  const famHidden = [1,2,3].map(n=>`<input type="hidden" id="f-fam${n}" value="">`).join('');
+  document.getElementById('familiesBody').innerHTML =
+    famHidden +
+    `<div class="fam-chip-grid">` +
+    FAMILIES.map(f=>`
+      <button type="button" class="fam-chip" data-fam="${esc(f.value)}" onclick="toggleFamChip(this)">
+        <span class="fam-chip-name">${esc(f.label)}</span>
+        <span class="fam-chip-desc">${esc(f.desc)}</span>
+        <span class="fam-chip-badge"></span>
+      </button>`).join('') +
+    `</div>`;
 
   // Peat expression checkboxes + intensity as 6th grid cell (sits under Ashy)
   document.getElementById('peatGrid').innerHTML = PEAT.map(p=>
@@ -2276,8 +2407,8 @@ function buildForm() {
     <div id="peatIntensityRow">
       <div class="subscale-scale" style="margin-bottom:0;">
         <span class="subscale-ll" style="flex:0 0 44px;">Low</span>
-        <div class="subscale-circles" data-field="peatIntensity" style="gap:6px;">
-          ${Array.from({length:7},(_,i)=>`<button class="circ" type="button" data-v="${i+1}" onclick="setScale(this)"></button>`).join('')}
+        <div class="subscale-circles" data-field="peatIntensity">
+          <div class="scale-slider-wrap"><input type="range" class="scale-slider" data-touched="false" min="1" max="7" step="1" value="4" onpointerdown="onSliderTouch(this)" oninput="onSliderInput(this)"></div>
         </div>
         <span class="subscale-rl" style="flex:0 0 44px;">Extreme</span>
       </div>
@@ -2291,7 +2422,7 @@ function buildForm() {
        <div class="subscale-scale">
          <span class="subscale-ll">${s.ll}</span>
          <div class="subscale-circles" data-field="${s.field}">
-           ${Array.from({length:7},(_,i)=>`<button class="circ" type="button" data-v="${i+1}" onclick="setScale(this)"></button>`).join('')}
+           <div class="scale-slider-wrap"><input type="range" class="scale-slider" data-touched="false" min="1" max="7" step="1" value="4" onpointerdown="onSliderTouch(this)" oninput="onSliderInput(this)"></div>
          </div>
          <span class="subscale-rl">${s.rl}</span>
        </div>
@@ -2313,18 +2444,48 @@ function buildForm() {
   document.getElementById('micBtn').style.display = hasSR ? 'flex' : 'none';
   const iosHint = document.getElementById('iosHint');
   if (iosHint) iosHint.style.display = isIOS ? 'block' : 'none';
+
+  // Init fill on all sliders built inline (e.g. peat intensity)
+  document.querySelectorAll('.scale-slider').forEach(s => updateSliderFill(s));
+  renderFamChips();
 }
 
 function setScale(btn) {
+  // Legacy dot handler (kept for any stray dot-based UIs)
   const parent = btn.closest('[data-field]');
   const alreadyOn = btn.classList.contains('on');
   parent.querySelectorAll('button').forEach(b => b.classList.remove('on'));
   if (!alreadyOn) {
     btn.classList.add('on');
     btn.classList.remove('circ-pop');
-    void btn.offsetWidth; // reflow to restart animation
+    void btn.offsetWidth;
     btn.classList.add('circ-pop');
   }
+}
+
+function onSliderTouch(slider) {
+  slider.dataset.touched = 'true';
+  updateSliderFill(slider);
+}
+
+function onSliderInput(slider) {
+  slider.dataset.touched = 'true';
+  updateSliderFill(slider);
+}
+
+function updateSliderFill(input) {
+  if (input.dataset.touched !== 'true') {
+    input.style.setProperty('--fill-start', '50%');
+    input.style.setProperty('--fill-end',   '50%');
+    return;
+  }
+  const v = parseInt(input.value) || 4;
+  const thumbPct = ((v - 1) / 6) * 100;
+  const centerPct = 50;
+  const start = Math.min(thumbPct, centerPct).toFixed(1) + '%';
+  const end   = Math.max(thumbPct, centerPct).toFixed(1) + '%';
+  input.style.setProperty('--fill-start', start);
+  input.style.setProperty('--fill-end',   end);
 }
 
 function toggleFamMenu(n) {
@@ -2354,47 +2515,48 @@ function toggleFamMenu(n) {
   }
 }
 
-function closeAllFamMenus() {
-  document.querySelectorAll('.fam-menu.open').forEach(m => m.classList.remove('open'));
-  document.querySelectorAll('.fam-trigger.open').forEach(t => t.classList.remove('open'));
+function closeAllFamMenus() { /* no-op — legacy menus removed */ }
+
+// selectFam called by populateForm — sets hidden inputs then re-renders chips
+function selectFam(n, value /*, label, desc unused */) {
+  const el = document.getElementById('f-fam'+n);
+  if (el) el.value = value || '';
+  renderFamChips();
 }
 
-function selectFam(n, value, label, desc) {
-  document.getElementById('f-fam'+n).value = value;
-  const nameEl = document.getElementById('fam-tname-'+n);
-  const descEl = document.getElementById('fam-tdesc-'+n);
-  nameEl.textContent = label || '— Select —';
-  nameEl.classList.toggle('placeholder', !value);
-  if (descEl) descEl.textContent = desc || '';
-  document.getElementById('fam-menu-'+n).classList.remove('open');
-  document.getElementById('fam-trigger-'+n).classList.remove('open');
+function toggleFamChip(chip) {
+  const val = chip.dataset.fam;
+  const slots = [1,2,3].map(n => ({ n, v: document.getElementById('f-fam'+n)?.value || '' }));
+  const existing = slots.find(s => s.v === val);
+  if (existing) {
+    // Remove this rank, compact remaining
+    document.getElementById('f-fam'+existing.n).value = '';
+    const remaining = slots.filter(s => s.v && s.v !== val).map(s => s.v);
+    [1,2,3].forEach((n,i) => { document.getElementById('f-fam'+n).value = remaining[i] || ''; });
+  } else {
+    const empty = slots.find(s => !s.v);
+    if (!empty) return; // all 3 taken
+    document.getElementById('f-fam'+empty.n).value = val;
+  }
+  renderFamChips();
 }
 
-function selectFamByIdx(el) {
-  if (el.classList.contains('fam-disabled')) return;
-  const n = parseInt(el.dataset.slot);
-  const idx = parseInt(el.dataset.idx);
-  if (idx < 0) { selectFam(n, '', '', ''); }
-  else { const f = FAMILIES[idx]; selectFam(n, f.value, f.label, f.desc); }
-  updateFamMenuStates();
-}
-
-function updateFamMenuStates() {
-  const selected = [1,2,3].map(n => document.getElementById('f-fam'+n)?.value).filter(Boolean);
+function renderFamChips() {
+  const ranks = {};
   [1,2,3].forEach(n => {
-    const myVal = document.getElementById('f-fam'+n)?.value || '';
-    document.querySelectorAll(`#fam-menu-${n} .fam-option[data-idx]`).forEach(opt => {
-      const idx = parseInt(opt.dataset.idx);
-      if (idx < 0) return;
-      const taken = selected.includes(FAMILIES[idx].value) && FAMILIES[idx].value !== myVal;
-      opt.classList.toggle('fam-disabled', taken);
-    });
+    const v = document.getElementById('f-fam'+n)?.value;
+    if (v) ranks[v] = n;
+  });
+  document.querySelectorAll('.fam-chip').forEach(chip => {
+    const rank = ranks[chip.dataset.fam];
+    chip.classList.toggle('fam-selected', !!rank);
+    const badge = chip.querySelector('.fam-chip-badge');
+    if (badge) badge.textContent = rank || '';
   });
 }
 
-// Close pickers on outside click or scroll
-document.addEventListener('click', e => { if (!e.target.closest('.fam-picker')) closeAllFamMenus(); });
-window.addEventListener('scroll', e => { if (!e.target.closest('.fam-menu')) closeAllFamMenus(); }, true);
+function selectFamByIdx(el) { /* legacy — no-op */ }
+function updateFamMenuStates() { /* legacy — no-op */ }
 
 function toggleRef() {
   document.getElementById('refToggle').classList.toggle('open');
@@ -2509,7 +2671,10 @@ function stopDictation() {
 
 function getScale(field) {
   const el = document.querySelector(`[data-field="${field}"]`);
-  const on = el ? el.querySelector('.on') : null;
+  if (!el) return null;
+  const slider = el.querySelector('.scale-slider');
+  if (slider) return slider.dataset.touched === 'true' ? (parseInt(slider.value) || null) : null;
+  const on = el.querySelector('.on');
   return on ? parseInt(on.dataset.v) : null;
 }
 
@@ -2613,12 +2778,20 @@ function populateForm(t) {
   [1,2,3].forEach(n => {
     const v = t['family'+n];
     const fam = FAMILIES.find(f=>f.value===v);
-    if (fam) selectFam(n, fam.value, fam.label, fam.desc);
+    if (fam) selectFam(n, fam.value);
   });
+  renderFamChips();
 
   const applyScale = (field,val) => {
-    if (!val) return;
     const el = document.querySelector(`[data-field="${field}"]`); if (!el) return;
+    const slider = el.querySelector('.scale-slider');
+    if (slider) {
+      slider.value = val != null ? val : 4;
+      slider.dataset.touched = val != null ? 'true' : 'false';
+      updateSliderFill(slider);
+      return;
+    }
+    if (!val) return;
     el.querySelectorAll('button').forEach(b=>b.classList.toggle('on', parseInt(b.dataset.v)===val));
   };
   ['alcoholInt','aromLift','aromInt','axisLH','axisDC','axisSR','axisFP',
@@ -2802,10 +2975,18 @@ function closeDeleteModal() {
 
 function executeDelete() {
   if (!_deleteTargetId) return;
-  dbDelete(_deleteTargetId);
-  closeDeleteModal();
-  showHistory();
-  showToast('Tasting deleted');
+  if (_deleteTargetId.startsWith('__library__')) {
+    const cellarId = _deleteTargetId.replace('__library__', '');
+    librarySave(libraryLoad().filter(b => b.id !== cellarId));
+    closeDeleteModal();
+    renderLibrary();
+    showToast('Removed from library');
+  } else {
+    dbDelete(_deleteTargetId);
+    closeDeleteModal();
+    showHistory();
+    showToast('Tasting deleted');
+  }
 }
 
 // ── Plain-text Summary ────────────────────────────────────────────────────────
@@ -3015,11 +3196,19 @@ let _prePolishNotes = null;
 
 // ── Peat intensity ────────────────────────────────────────────────────────────
 function setPeatIntensity(v) {
-  const circles = document.querySelector('[data-field="peatIntensity"]');
-  if (!circles) return;
-  circles.querySelectorAll('.circ').forEach(b => b.classList.remove('on', 'circ-pop'));
+  const el = document.querySelector('[data-field="peatIntensity"]');
+  if (!el) return;
+  const slider = el.querySelector('.scale-slider');
+  if (slider) {
+    const hasVal = v != null && v !== '';
+    slider.value = hasVal ? v : 4;
+    slider.dataset.touched = hasVal ? 'true' : 'false';
+    updateSliderFill(slider);
+    return;
+  }
+  el.querySelectorAll('.circ').forEach(b => b.classList.remove('on', 'circ-pop'));
   if (v !== null && v !== undefined && v !== '') {
-    const btn = circles.querySelector(`[data-v="${v}"]`);
+    const btn = el.querySelector(`[data-v="${v}"]`);
     if (btn) btn.classList.add('on');
   }
 }
@@ -4007,10 +4196,12 @@ function switchTab(tab) {
   document.getElementById('tab-map').classList.toggle('active', tab === 'map');
   document.getElementById('tab-fitcheck').classList.toggle('active', tab === 'fitcheck');
   document.getElementById('tab-pour').classList.toggle('active', tab === 'pour');
+  document.getElementById('tab-library').classList.toggle('active', tab === 'library');
   if (tab === 'tastings')       { renderHistory(); showView('history'); }
   else if (tab === 'discover')  { showDiscoverView(); showView('discover'); }
   else if (tab === 'map')       { showMapView(); showView('map'); }
   else if (tab === 'pour')      { showView('pour'); updateBioDayPill(); window.scrollTo(0,0); }
+  else if (tab === 'library')    { showLibraryView(); showView('library'); }
   else                          { showView('fitcheck'); window.scrollTo(0,0); }
 }
 
@@ -6060,24 +6251,24 @@ const MAP_REGION_OVERRIDE = {
   'Connacht':      'Mayo',      'Nephin':      'Mayo',     'Achill Island':'Mayo',
   'Drumshanbo':    'Leitrim',
   'Sliabh Liag':   'Donegal',
-  // Japan — by prefecture
-  'Yoichi':        'Hokkaido',  'Akkeshi':     'Hokkaido',
-  'Miyagikyo':     'Miyagi',
-  'Asaka':         'Fukushima',
-  'Chichibu':      'Saitama',   'Hanyu':       'Saitama (closed)',
-  'Karuizawa':     'Nagano (closed)', 'Mars Shinshu':'Nagano',
-  'Saburomaru':    'Toyama',
-  'Niigata Kameda':'Niigata',
-  'Nagahama':      'Shiga',
-  'Chita':         'Aichi',
-  'Eigashima / White Oak':'Hyogo',
-  'Kurayoshi / Matsui':'Tottori',
-  'Hakushu':       'Yamanashi',
-  'Shizuoka':      'Shizuoka',  'Fuji Gotemba':'Shizuoka',
-  'Yamazaki':      'Osaka',
-  'Sakurao':       'Hiroshima',
-  'Kanosuke':      'Kagoshima', 'Mars Tsunuki':'Kagoshima',
-  'Kawasaki':      'Kanagawa (closed)',
+  // Japan — by island
+  'Yoichi':        'Hokkaido',  'Akkeshi':     'Hokkaido',  'Nikka': 'Hokkaido',
+  'Miyagikyo':     'Honshu',
+  'Asaka':         'Honshu',
+  'Chichibu':      'Honshu',    'Hanyu':       'Honshu (closed)',
+  'Karuizawa':     'Honshu (closed)', 'Mars Shinshu':'Honshu',
+  'Saburomaru':    'Honshu',
+  'Niigata Kameda':'Honshu',
+  'Nagahama':      'Honshu',
+  'Chita':         'Honshu',
+  'Eigashima / White Oak':'Honshu',
+  'Kurayoshi / Matsui':'Honshu',
+  'Hakushu':       'Honshu',
+  'Shizuoka':      'Honshu',    'Fuji Gotemba':'Honshu',
+  'Yamazaki':      'Honshu',
+  'Sakurao':       'Honshu',
+  'Kanosuke':      'Kyushu',    'Mars Tsunuki':'Kyushu',
+  'Kawasaki':      'Honshu (closed)',
   // USA — by state
   // USA — by state
   'Buffalo Trace': 'Kentucky', 'Eagle Rare':  'Kentucky', "Blanton's":   'Kentucky',
@@ -6119,18 +6310,17 @@ const MAP_REGION_OVERRIDE = {
 
 // ── D3 / TopoJSON map rendering ───────────────────────────────────────────────
 
-function loadMapScripts() {
+function loadLeaflet() {
   return new Promise((resolve) => {
-    if (window.d3 && window.topojson) { resolve(); return; }
-    const d3Script = document.createElement('script');
-    d3Script.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
-    d3Script.onload = () => {
-      const topoScript = document.createElement('script');
-      topoScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js';
-      topoScript.onload = resolve;
-      document.head.appendChild(topoScript);
-    };
-    document.head.appendChild(d3Script);
+    if (window.L) { resolve(); return; }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    document.head.appendChild(link);
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    script.onload = resolve;
+    document.head.appendChild(script);
   });
 }
 
@@ -6198,23 +6388,19 @@ const SOURCED_BRANDS = {
 const MAP_COUNTRIES = {
   scotland: {
     label: 'Scotland',
-    bounds: [[-7.7, 54.7], [-1.5, 59.7]],
-    maxAspect: 1.2,
-    heightCap: 580,
-    countryId: 826,
+    center: [57.1, -4.7], zoom: 7,
     regions: [
       { name: 'Speyside',     labelPos: [57.43, -3.25] },
-      { name: 'Highlands',    labelPos: [57.5,  -4.5]  },
+      { name: 'Highlands',    labelPos: [57.7,  -4.8]  },
       { name: 'Lowlands',     labelPos: [56.1,  -3.5]  },
       { name: 'Islay',        labelPos: [55.75, -6.2]  },
-      { name: 'Islands',      labelPos: [57.3,  -6.0]  },
+      { name: 'Islands',      labelPos: [57.3,  -6.1]  },
       { name: 'Campbeltown',  labelPos: [55.4,  -5.5]  },
     ],
   },
   ireland: {
     label: 'Ireland',
-    bounds: [[-10.7, 51.3], [-5.9, 55.4]],
-    countryIds: [372, 826],
+    center: [53.5, -8.0], zoom: 7,
     regions: [
       { name: 'Ulster',   labelPos: [54.7, -7.5] },
       { name: 'Connacht', labelPos: [53.8, -8.8] },
@@ -6224,209 +6410,137 @@ const MAP_COUNTRIES = {
   },
   japan: {
     label: 'Japan',
-    bounds: [[129.5, 30.0], [146.0, 45.6]],
-    countryId: 392,
+    center: [37.5, 138.0], zoom: 5.6,
     regions: [
       { name: 'Hokkaido', labelPos: [43.5, 142.5] },
-      { name: 'Honshu',   labelPos: [36.0, 138.5] },
-      { name: 'Kyushu',   labelPos: [32.5, 130.8] },
+      { name: 'Honshu',   labelPos: [36.2, 138.0] },
+      { name: 'Kyushu',   labelPos: [32.8, 130.8] },
     ],
   },
   usa: {
     label: 'USA',
-    bounds: [[-125.0, 24.5], [-65.0, 49.5]],
-    countryId: 840,
+    center: [37.5, -93.0], zoom: 5,
     regions: [
       { name: 'Kentucky',   labelPos: [37.5,  -85.5]  },
-      { name: 'Tennessee',  labelPos: [35.8,  -86.2]  },
+      { name: 'Tennessee',  labelPos: [35.5,  -86.5]  },
       { name: 'Texas',      labelPos: [31.5,  -99.0]  },
       { name: 'Washington', labelPos: [47.4, -120.5]  },
     ],
   },
 };
 
-let _worldTopo = null;
+let _leafletMap = null;
+let _leafletMarkers = {};
+let _leafletMarkerLayer = null;
 let _activeMapCountry = 'scotland';
 
 async function renderMap(country) {
   const container = document.getElementById('mapContainer');
-  container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--tf-dim);font-size:12px;">Loading map\u2026</div>';
 
   document.querySelectorAll('#mapCountryTabs .fd-tag').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.country === country);
   });
 
-  await loadMapScripts();
-
-  if (!_worldTopo) {
-    try {
-      const resp = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json');
-      _worldTopo = await resp.json();
-    } catch (e) {
-      container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--tf-dim);font-size:12px;">Map data unavailable \u2014 check your connection.</div>';
-      return;
-    }
+  // Show loading only on first load (before Leaflet creates its DOM)
+  if (!_leafletMap) {
+    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--tf-dim);font-size:12px;">Loading map…</div>';
   }
+
+  await loadLeaflet();
 
   const config = MAP_COUNTRIES[country];
-  const svgW = Math.min(container.clientWidth || 620, 900);
 
-  // Manually compute Mercator projection — fitExtent proved unreliable
-  const [[minLng, minLat], [maxLng, maxLat]] = config.bounds;
-  const centerLng = (minLng + maxLng) / 2;
-  const centerLat = (minLat + maxLat) / 2;
-  const toMercY = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
-  const mercH = Math.abs(toMercY(maxLat) - toMercY(minLat));
-  const mercW = (maxLng - minLng) * Math.PI / 180;
-  const maxAsp = config.maxAspect !== undefined ? config.maxAspect : 1.6;
-  const heightCap = config.heightCap || 700;
-  const svgH = Math.min(Math.round(svgW * (mercH / mercW) * 1.02), Math.round(svgW * maxAsp), heightCap);
-  const scale = Math.min(svgW / mercW, svgH / mercH) * 0.92;
+  // Create map once; NEVER clear container.innerHTML after this point
+  if (!_leafletMap) {
+    container.innerHTML = '';
+    _leafletMap = L.map('mapContainer', {
+      zoomControl: true,
+      scrollWheelZoom: false,
+      attributionControl: true,
+      zoomSnap: 0.1,
+      zoomDelta: 0.5,
+    });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 19,
+      subdomains: 'abcd',
+    }).addTo(_leafletMap);
+    _leafletMap.on('click', clearMapHighlight);
+  }
 
-  const projection = d3.geoMercator()
-    .center([centerLng, centerLat])
-    .scale(scale)
-    .translate([svgW / 2, svgH / 2]);
+  _leafletMap.setView(config.center, config.zoom, { animate: false });
+  setTimeout(() => { if (_leafletMap) _leafletMap.invalidateSize(); }, 50);
 
-  const path = d3.geoPath().projection(projection);
-
-  // land-50m has a single "land" object
-  const land = topojson.feature(_worldTopo, _worldTopo.objects.land);
-
-  container.innerHTML = '';
-  const svg = d3.select(container).append('svg')
-    .attr('width', svgW)
-    .attr('height', svgH)
-    .attr('class', 'map-svg')
-    .attr('viewBox', `0 0 ${svgW} ${svgH}`)
-    .style('display', 'block');
-
-  // Hard clip to SVG viewport — prevents world map bleeding outside bounds
-  svg.append('defs').append('clipPath').attr('id', 'map-vp')
-    .append('rect').attr('width', svgW).attr('height', svgH);
-  const mapG = svg.append('g').attr('clip-path', 'url(#map-vp)');
-
-  // Sea background — clicking blank area clears any active callout
-  mapG.append('rect')
-    .attr('width', svgW).attr('height', svgH)
-    .attr('fill', '#D8E4EC')
-    .on('click', clearMapHighlight);
-
-  // Land \u2014 the projection+viewport naturally clips to the bounding box region
-  mapG.append('path')
-    .datum(land)
-    .attr('d', path)
-    .attr('fill', '#EAE6DE')
-    .attr('stroke', '#B8B4AB')
-    .attr('stroke-width', 0.8);
+  // Clear old markers + region labels
+  if (_leafletMarkerLayer) _leafletMarkerLayer.remove();
+  _leafletMarkerLayer = L.layerGroup().addTo(_leafletMap);
+  _leafletMarkers = {};
 
   // Region labels
-  if (config.regions) {
-    config.regions.forEach(region => {
-      const [lat, lng] = region.labelPos;
-      const [x, y] = projection([lng, lat]);
-      if (x < 0 || x > svgW || y < 0 || y > svgH) return;
-      mapG.append('text')
-        .attr('x', x).attr('y', y)
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '9')
-        .attr('font-weight', '700')
-        .attr('letter-spacing', '0.1em')
-        .attr('fill', 'rgba(43,48,56,0.4)')
-        .attr('font-family', 'Helvetica Neue, Helvetica, Arial, sans-serif')
-        .text(region.name.toUpperCase());
-    });
-  }
+  (config.regions || []).forEach(region => {
+    L.marker(region.labelPos, {
+      icon: L.divIcon({
+        className: 'map-region-label',
+        html: region.name.toUpperCase(),
+        iconSize: [120, 16],
+        iconAnchor: [60, 8],
+      }),
+      interactive: false,
+      keyboard: false,
+    }).addTo(_leafletMarkerLayer);
+  });
 
   // Distillery markers
   const tastedNames = new Set(dbLoad().map(t => t.distillery).filter(Boolean));
   const countryDists = MAP_DISTILLERIES[country] || [];
 
-  // Detect co-located markers and pre-compute radial offsets so they're all clickable
-  const coordKey = (lat, lng) => lat.toFixed(3) + ',' + lng.toFixed(3);
-  const coordGroups = {};
-  countryDists.forEach(name => {
-    const c = DISTILLERY_COORDS[name];
-    if (!c) return;
-    const k = coordKey(c[0], c[1]);
-    if (!coordGroups[k]) coordGroups[k] = [];
-    coordGroups[k].push(name);
-  });
-  const markerOffset = {};
-  const GOLDEN_ANGLE = 2.39996; // 137.5° in radians
-  Object.values(coordGroups).forEach(group => {
-    if (group.length === 1) { markerOffset[group[0]] = [0, 0]; return; }
-    group.forEach((name, i) => {
-      if (i === 0) { markerOffset[name] = [0, 0]; return; } // first stays at centre
-      const r = Math.sqrt(i) * 8;  // radius grows with √i → sunflower spacing
-      const angle = i * GOLDEN_ANGLE;
-      markerOffset[name] = [Math.cos(angle) * r, Math.sin(angle) * r];
-    });
-  });
-
   countryDists.forEach(name => {
     const coords = DISTILLERY_COORDS[name];
     if (!coords) return;
     const [lat, lng] = coords;
-    const proj = projection([lng, lat]);
-    if (!proj) return;
-    const [bx, by] = proj;
-    if (bx < -10 || bx > svgW + 10 || by < -10 || by > svgH + 10) return;
-    const [ox, oy] = markerOffset[name] || [0, 0];
-    const x = bx + ox, y = by + oy;
-
     const isTasted = tastedNames.has(name);
-    const mg = mapG.append('g')
-      .attr('data-dist', name)
-      .attr('data-cx', x.toFixed(1))
-      .attr('data-cy', y.toFixed(1))
-      .style('cursor', 'pointer')
-      .on('mouseenter', function(event) {
-        const tt = document.getElementById('mapTooltip');
-        if (!tt) return;
-        const svgEl = document.querySelector('#mapContainer svg');
-        const svgRect = svgEl ? svgEl.getBoundingClientRect() : {left:0, top:0};
-        const wrapper = document.getElementById('mapWrapper');
-        const wRect = wrapper ? wrapper.getBoundingClientRect() : {left:0, top:0};
-        tt.textContent = name;
-        tt.style.left = (svgRect.left - wRect.left + x) + 'px';
-        tt.style.top = (svgRect.top - wRect.top + y) + 'px';
-        tt.style.display = 'block';
-      })
-      .on('mouseleave', function() {
-        const tt = document.getElementById('mapTooltip');
-        if (tt) tt.style.display = 'none';
-      })
-      .on('click', (event) => { event.stopPropagation(); showDistillery(name); });
 
-    mg.append('circle').attr('cx', x).attr('cy', y).attr('r', 5)
-      .attr('fill', 'white').attr('opacity', 0.9);
-    mg.append('circle').attr('cx', x).attr('cy', y).attr('r', 3.5)
-      .attr('fill', isTasted ? 'var(--amber)' : '#5A5E66')
-      .attr('opacity', isTasted ? 1 : 0.65);
+    const marker = L.circleMarker([lat, lng], {
+      radius: 5,
+      fillColor: isTasted ? '#E55B20' : '#A09E9A',
+      color: 'white',
+      weight: 1.5,
+      opacity: 1,
+      fillOpacity: isTasted ? 1 : 0.65,
+    });
+
+    marker.bindTooltip(name, {
+      direction: 'top', offset: [0, -6],
+      className: 'map-leaflet-tooltip',
+    });
+
+    marker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      highlightMapMarker(name);
+      showDistillery(name);
+    });
+
+    _leafletMarkers[name] = marker;
+    _leafletMarkerLayer.addLayer(marker);
   });
 
-  // Legend and count
-  const tastedCount = countryDists.filter(n => tastedNames.has(n)).length;
+  // Legend
+  const tastedCount = countryDists.filter(n => tastedNames.has(n) && DISTILLERY_COORDS[n]).length;
   const legend = document.getElementById('mapLegend');
-  if (legend) {
-    legend.innerHTML = `
-      <span><span class="map-legend-dot" style="background:var(--amber);"></span> Tasted (${tastedCount})</span>
-      <span><span class="map-legend-dot" style="background:#5A5E66;opacity:0.7;"></span> Not yet tasted</span>
-      <span style="font-style:italic;margin-left:8px;">Click marker to view profile</span>
-    `;
-  }
+  if (legend) legend.innerHTML = `
+    <span><span class="map-legend-dot" style="background:var(--amber);"></span> Tasted (${tastedCount})</span>
+    <span><span class="map-legend-dot" style="background:#A09E9A;opacity:0.8;"></span> Not yet tasted</span>
+    <span style="font-style:italic;margin-left:8px;">Click marker for profile</span>`;
   const mapCount = document.getElementById('mapCount');
   if (mapCount) mapCount.textContent = `${countryDists.filter(n => DISTILLERY_COORDS[n]).length} distilleries`;
 
   buildMapSideList(country, tastedNames);
 
-  // Sync panel height to map SVG height
+  // Panel height is controlled by CSS (matches #mapContainer)
   const panelBody = document.getElementById('mapSideList');
-  if (panelBody) panelBody.style.maxHeight = (svgH - 44) + 'px'; // 44 = search wrap height
-  const panel = document.getElementById('mapPanel');
-  if (panel) panel.style.maxHeight = svgH + 'px';
+  if (panelBody) panelBody.style.maxHeight = '';
 }
+
 
 function buildMapSideList(country, tastedNames) {
   const listEl = document.getElementById('mapSideList');
@@ -6538,78 +6652,27 @@ function filterMapSideList(query) {
 }
 
 function highlightMapMarker(name) {
-  // Clear any previous callout
-  document.querySelectorAll('.map-callout, .map-pulse-ring').forEach(el => el.remove());
-  // Remove previous active state from side list items
   document.querySelectorAll('#mapSideList .map-list-item.active').forEach(el => el.classList.remove('active'));
-
-  const svg = document.querySelector('#mapContainer svg');
-  if (!svg) return;
-  const mapG = svg.querySelector('[clip-path]');
-  const markerG = svg.querySelector(`[data-dist="${CSS.escape(name)}"]`);
-  if (!markerG || !mapG) return;
-
-  const cx = parseFloat(markerG.getAttribute('data-cx'));
-  const cy = parseFloat(markerG.getAttribute('data-cy'));
-
-  // Bring marker to front so it sits above the cluster
-  mapG.appendChild(markerG);
-
-  // Persistent selection ring on the marker
-  const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  ring.setAttribute('cx', cx); ring.setAttribute('cy', cy); ring.setAttribute('r', '9');
-  ring.setAttribute('fill', 'none');
-  ring.setAttribute('stroke', 'var(--amber)'); ring.setAttribute('stroke-width', '2.5');
-  ring.setAttribute('class', 'map-callout');
-  markerG.appendChild(ring);
-
-  // Name callout label — decide left/right based on position in SVG
-  const svgW = parseFloat(svg.getAttribute('width') || 600);
-  const svgH = parseFloat(svg.getAttribute('height') || 500);
-  const goLeft = cx > svgW * 0.6;
-  const pad = 14, rectH = 20;
-  const label = name;
-  // Measure text width roughly (7px per char)
-  const tw = label.length * 6.8 + 12;
-  const rx = goLeft ? cx - pad - tw : cx + pad;
-  const ry = cy - rectH / 2;
-
-  // Clamp vertically
-  const ry2 = Math.max(4, Math.min(svgH - rectH - 4, ry));
-
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.setAttribute('class', 'map-callout');
-  g.style.cursor = 'pointer';
-  g.addEventListener('click', (e) => { e.stopPropagation(); showDistillery(name); });
-
-  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  bg.setAttribute('x', rx); bg.setAttribute('y', ry2);
-  bg.setAttribute('width', tw); bg.setAttribute('height', rectH);
-  bg.setAttribute('rx', '4'); bg.setAttribute('fill', 'var(--amber)');
-  g.appendChild(bg);
-
-  const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  txt.setAttribute('x', rx + tw / 2); txt.setAttribute('y', ry2 + 13.5);
-  txt.setAttribute('text-anchor', 'middle');
-  txt.setAttribute('font-size', '10'); txt.setAttribute('font-weight', '600');
-  txt.setAttribute('fill', 'white');
-  txt.setAttribute('font-family', 'Helvetica Neue, Helvetica, Arial, sans-serif');
-  txt.textContent = label;
-  g.appendChild(txt);
-
-  mapG.appendChild(g);
-
-  // Highlight the active item in side list
-  const listItem = document.querySelector(`#mapSideList [data-dist="${CSS.escape(name)}"]`);
-  if (listItem) {
-    listItem.classList.add('active');
-    listItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
+  if (!_leafletMap || !_leafletMarkers[name]) return;
+  const marker = _leafletMarkers[name];
+  _leafletMap.panTo(marker.getLatLng(), { animate: true, duration: 0.4 });
+  const popupEl = document.createElement('div');
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size:11px;font-weight:700;color:#2B3038;font-family:Helvetica Neue,sans-serif;';
+  title.textContent = name;
+  const link = document.createElement('div');
+  link.style.cssText = 'font-size:10px;color:#E55B20;margin-top:3px;cursor:pointer;';
+  link.textContent = 'View profile →';
+  link.onclick = () => showDistillery(name);
+  popupEl.appendChild(title);
+  popupEl.appendChild(link);
+  marker.bindPopup(popupEl, { closeButton: true, className: 'map-leaflet-popup', maxWidth: 200 }).openPopup();
+  const listItem = document.querySelector('#mapSideList [data-dist="' + CSS.escape(name) + '"]');
+  if (listItem) { listItem.classList.add('active'); listItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
 }
 
-// Clear callout when clicking blank map area
 function clearMapHighlight() {
-  document.querySelectorAll('.map-callout').forEach(el => el.remove());
+  if (_leafletMap) _leafletMap.closePopup();
   document.querySelectorAll('#mapSideList .map-list-item.active').forEach(el => el.classList.remove('active'));
 }
 
@@ -6630,6 +6693,7 @@ function closeSourcedModal() {
 
 function showMapView() {
   renderMap(_activeMapCountry);
+  // invalidateSize is called inside renderMap via setTimeout
 }
 
 function switchMapCountry(country) {
@@ -6642,10 +6706,81 @@ function switchMapCountry(country) {
 }
 
 // ── Versioning ────────────────────────────────────────────────────────────────
-const APP_VERSION  = '2.3.0';
-const DATA_VERSION = 2;
+const APP_VERSION  = '2.11.0';
+const DATA_VERSION = 3;
 
 const CHANGELOG = [
+  { version: '2.11.0', label: 'Tasting', date: '2026-04-24', items: [
+    'Scale sliders now start unset — grey track and thumb until first touch; data is only recorded once you interact',
+    'Amber fill activates on first drag or click, showing center-out direction as before',
+    'A small × appears on touched sliders to reset them back to unset',
+    'getScale() returns null for untouched sliders — no more phantom 4s contaminating your data',
+  ]},
+  { version: '2.10.0', label: 'Map & Tasting', date: '2026-04-24', items: [
+    'Map tiles switched to label-free base — no more Cyrillic, Hangul, or multilingual sea labels on any country; custom English region labels remain',
+    'Leaflet zoomSnap set to 0.1 — fractional zoom levels now work correctly across all countries',
+    'Japan: zoom 5.6 centered at [37.5, 138.0] — all four main islands visible including Akkeshi on the northeast tip of Hokkaido',
+    'Japan sidebar now groups by island (Hokkaido / Honshu / Kyushu) instead of prefecture',
+    'Chemical Families redesigned as tap-to-rank chip grid — all 8 families visible at once, numbered badges show rank order',
+    'Tasting scale sliders: amber now fills from the centre outward in whichever direction you drag; faint centre tick marks the midpoint',
+    'Slider thumb replaced with a narrow notch (4×16 px) — less intrusive, grows on press',
+  ]},
+  { version: '2.8.0', label: 'Tasting', date: '2026-04-24', items: [
+    'Scale inputs are now sliders — drag left or right to place each scale; amber fill tracks your position',
+    'All 11 scales updated: Alcohol Integration, Aromatic Behavior, Structural Axes, Peat Intensity, and the five Process Driver subscales',
+    'Japan map zoom tuned to show main islands at a comfortable scale',
+  ]},
+  { version: '2.7.0', label: 'Map', date: '2026-04-24', items: [
+    'Tasted and untasted distillery dots now the same size (radius 5) — distinguished only by colour, amber vs grey',
+    'Japan map zoomed in to show main islands more clearly; foreign-language sea labels no longer visible at this zoom level',
+    'All four country views use explicit center + zoom for consistent framing across any screen height',
+  ]},
+  { version: '2.6.0', label: 'Map', date: '2026-04-24', items: [
+    'Map rebuilt on Leaflet + CartoDB Positron tiles — real vector-quality rendering with proper Scottish coastlines and islands',
+    'Markers: amber filled circles for tasted distilleries, grey for untasted, white border on both',
+    'Dark tooltip on hover, amber popup on click with "View profile" link',
+    'Tap/click map background to dismiss popup',
+    'Map reuses instance on country switch — smooth fitBounds animation',
+  ]},
+  { version: '2.5.5', label: 'Library', date: '2026-04-24', items: [
+    'Price filter slider fill direction fixed (amber now shows selected range)',
+    'Renamed to "Max Price" throughout',
+    'Name sort strips leading "The" and age expressions — "The GlenDronach" sorts under G, "18 yo Highland Park" sorts under H',
+  ]},
+  { version: '2.5.4', label: 'Library', date: '2026-04-24', items: [
+    'Library search bar — filters by name, distillery, region, or notes',
+    'Library sort — Distillery A–Z, Name A–Z, Score ↓↑, Price ↓↑, Quantity ↓',
+    'Library filter drawer — min tasting score slider, max price slider, region chips',
+    'Active filter chips shown below search bar with one-tap clear',
+  ]},
+  { version: '2.5.3', label: 'Map', date: '2026-04-24', items: [
+    'Fixed distillery photos not loading — Wikipedia media-list uses srcset, not thumbnail; also fixed protocol-relative URLs (// → https:)',
+  ]},
+  { version: '2.5.2', label: 'Library & Map', date: '2026-04-24', items: [
+    'Library: "Start tasting note" button in expanded card pre-fills the tasting form',
+    'Map: distillery photos now prefer actual building shots — filters out logos, labels, and bottle images',
+  ]},
+  { version: '2.5.1', label: 'Library', date: '2026-04-24', items: [
+    'Library cards now expand inline on tap to reveal notes and bottle description',
+    'Personal notes textarea auto-saves on blur — no button needed',
+    'On-demand AI description via Haiku, cached on the bottle record',
+    'Notes field added to Add/Edit Bottle form',
+  ]},
+  { version: '2.4.0', date: 'Fri Apr 24 2026', label: 'Comparison · Cellar · Label Scan',
+    changes: [
+      'Tasting comparison — tap Compare in the Tastings toolbar, tick up to 4 tastings, and compare them side by side: score, all structural axes with mini progress bars, chemical families, mouthfeel, and peat expression, with differences highlighted',
+      'Library tab — track your bottle collection with name, distillery, region, age, ABV, quantity, price paid, and where bought. Add bottles manually or via the photo scanner',
+      'Multi-bottle photo recognition — photograph a shelf or group of bottles and Claude identifies each one. Review and correct the batch before saving, remove any misreads',
+      'Label scan on tasting form — small camera button in the Whisky Information header; photograph any label to pre-fill name, distillery, region, age, ABV, distillation year, bottler, and type',
+    ],
+  },
+  { version: '2.3.1', date: 'Fri Apr 24 2026', label: 'Cask Ref & Year Colour',
+    changes: [
+      'Cask # field label renamed to "Cask # / Ref #" with updated placeholder — accommodates reference numbers when no formal cask number is assigned',
+      'Cask # / Ref # value now appears in the Tastings summary card meta line, italicised, so multiple samples from the same distillery and year can be distinguished at a glance',
+      'Distillation Year in summary cards no longer rendered in grey — now matches the rest of the meta line',
+    ],
+  },
   { version: '2.3.0', date: 'Thu Apr 24 2026', label: 'Cask Details — Layout & Deduplication',
     changes: [
       'Cask Details restructured to proper 3-col grid: identification (Type · # · Location), pricing (Price · RLA · Price/RLA), volume/yield (Bulk · Outturn · Price/70cl), then Cask History spanning 2 cols with Last Regauge in the third',
@@ -7043,6 +7178,15 @@ function runMigrations() {
     saveSpinFavs(tagged);
   }
 
+  // v2 → v3: library key renamed from wic_cellar to wic_library
+  if (stored < 3) {
+    const old = localStorage.getItem('wic_cellar');
+    if (old && !localStorage.getItem('wic_library')) {
+      localStorage.setItem('wic_library', old);
+    }
+    localStorage.removeItem('wic_cellar');
+  }
+
   localStorage.setItem('wic_data_version', String(DATA_VERSION));
 }
 
@@ -7056,7 +7200,7 @@ function openChangelog() {
           <span class="changelog-v-label">${v.label}</span>
           <span class="changelog-v-date">${v.date}</span>
         </div>
-        <ul>${v.changes.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
+        <ul>${(v.changes || v.items || []).map(c => `<li>${esc(c)}</li>`).join('')}</ul>
       </div>`).join('');
   }
   document.getElementById('changelogModal').classList.add('open');
@@ -7103,7 +7247,32 @@ function closeDistilleryModal() {
 }
 
 async function fetchDistilleryImage(name) {
-  const tryTitle = async (title) => {
+  // Terms that indicate non-building images
+  const BAD = /logo|label|bottle|cask|map|icon|flag|coat.of.arms|sign|badge|emblem|\.svg$/i;
+  // Protocol-relative URLs from Wikimedia need https: prepended
+  const fixUrl = url => url ? (url.startsWith('//') ? 'https:' + url : url) : null;
+
+  const tryMediaList = async (title) => {
+    try {
+      const res = await fetch(
+        `https://en.wikipedia.org/api/rest_v1/page/media-list/${encodeURIComponent(title)}`,
+        { signal: AbortSignal.timeout(6000) }
+      );
+      if (!res.ok) return null;
+      const d = await res.json();
+      const photos = (d.items || []).filter(item =>
+        item.type === 'image' && !BAD.test(item.title || '')
+      );
+      for (const photo of photos) {
+        // thumbnail is often null; srcset[0].src is the reliable field
+        const raw = photo.thumbnail?.source || photo.srcset?.[0]?.src;
+        if (raw) return fixUrl(raw);
+      }
+      return null;
+    } catch { return null; }
+  };
+
+  const trySummary = async (title) => {
     try {
       const res = await fetch(
         `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
@@ -7111,10 +7280,17 @@ async function fetchDistilleryImage(name) {
       );
       if (!res.ok) return null;
       const d = await res.json();
-      return d.thumbnail?.source || null;
+      const thumb = fixUrl(d.thumbnail?.source);
+      return (thumb && !BAD.test(thumb)) ? thumb : null;
     } catch { return null; }
   };
-  return await tryTitle(name + ' distillery') || await tryTitle(name);
+
+  return (
+    await tryMediaList(name + ' distillery') ||
+    await tryMediaList(name) ||
+    await trySummary(name + ' distillery') ||
+    await trySummary(name)
+  );
 }
 
 async function fetchDistilleryProfile(name, key) {
@@ -7194,6 +7370,769 @@ function renderDistilleryModal(info) {
     </ul>
     <div class="dist-section-label">Notable</div>
     <div class="dist-fact"><strong>✦</strong> ${esc(info.fact||'')}</div>`;
+}
+
+// ── Photo-to-prefill ──────────────────────────────────────────────────────────
+async function onFormLabelScan(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const btn = document.getElementById('formScanBtn');
+  btn.textContent = 'Reading…';
+  btn.disabled = true;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const dataUrl = e.target.result;
+    const [header, b64] = dataUrl.split(',');
+    const mediaType = header.match(/data:(.*);/)[1] || 'image/jpeg';
+    const key = loadApiKey();
+    if (!key) {
+      showToast('Enter and save your Claude API key first');
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Scan label';
+      btn.disabled = false;
+      return;
+    }
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 512,
+          messages: [{ role: 'user', content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+            { type: 'text', text: 'Read this whisky bottle label and return ONLY a JSON object with any of these fields you can determine: {"name":"full bottle name as on label","distillery":"distillery name","region":"whisky region","age":"e.g. 10 years or NAS","distYear":1997,"abv":"e.g. 46%","bottler":"independent bottler name if present, else omit","type":"ob or ib or cask or other"}. Omit fields you cannot read. Return only the JSON object, no other text.' }
+          ]}]
+        }),
+      });
+      if (!response.ok) throw new Error(`API error ${response.status}`);
+      const data = await response.json();
+      const text = (data.content?.[0]?.text || '').trim();
+      const m = text.match(/\{[\s\S]*\}/);
+      if (!m) throw new Error('Could not parse label');
+      const info = JSON.parse(m[0]);
+      const setField = (id, val) => { if (val != null && val !== '') { const el = document.getElementById(id); if (el) el.value = val; }};
+      setField('f-name', info.name);
+      setField('f-distillery', info.distillery);
+      setField('f-region', info.region);
+      setField('f-age', info.age);
+      setField('f-dist-year', info.distYear);
+      setField('f-abv', info.abv);
+      setField('f-bottler', info.bottler);
+      if (info.type) {
+        const typeEl = document.getElementById('f-type');
+        if (typeEl) { typeEl.value = info.type; onTypeChange(); }
+      }
+      showToast('Label read — please check the fields');
+    } catch (err) {
+      showToast('Could not read label: ' + err.message);
+    }
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Scan label';
+    btn.disabled = false;
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Library distillery autocomplete ──────────────────────────────────────────
+let _libDistIdx = -1;
+
+function filterLibDist(val) {
+  _libDistIdx = -1;
+  const input = document.getElementById('library-f-distillery');
+  const dd    = document.getElementById('libDistDropdown');
+  if (!val || val.length < 1) { dd.style.display = 'none'; return; }
+  const raw  = val.toLowerCase().trim();
+  let search = raw;
+  const aliasKeys = Object.keys(DISTILLERY_ALIASES).sort((a, b) => b.length - a.length);
+  for (const key of aliasKeys) {
+    if (raw.startsWith(key) || raw === key) { search = DISTILLERY_ALIASES[key].toLowerCase(); break; }
+  }
+  const seen = new Set();
+  const tier1 = [], tier2 = [], tier3 = [];
+  for (const entry of DISTILLERIES) {
+    const nl = entry[0].toLowerCase();
+    if (seen.has(nl)) continue;
+    if (nl.startsWith(search))   { tier1.push(entry); seen.add(nl); }
+    else if (nl.includes(search)) { tier2.push(entry); seen.add(nl); }
+  }
+  if (tier1.length + tier2.length < 4) {
+    for (const entry of DISTILLERIES) {
+      const nl = entry[0].toLowerCase();
+      if (!seen.has(nl) && fuzzyMatch(search, nl)) { tier3.push(entry); seen.add(nl); }
+    }
+  }
+  if (tier1.length + tier2.length + tier3.length < 3) {
+    for (const entry of DISTILLERIES) {
+      const nl = entry[0].toLowerCase();
+      if (!seen.has(nl) && typoMatch(search, nl)) { tier3.push(entry); seen.add(nl); }
+    }
+  }
+  const matches = [...tier1, ...tier2, ...tier3].slice(0, 9);
+  if (!matches.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = matches.map(([name, region], i) =>
+    `<div class="distillery-option" data-idx="${i}" data-name="${esc(name)}" data-region="${esc(region)}" onmousedown="selectLibDist(this)">
+       <div class="distillery-option-name">${esc(name)}</div>
+       <div class="distillery-option-region">${esc(region)}</div>
+     </div>`
+  ).join('');
+  const r = input.getBoundingClientRect();
+  dd.style.left = r.left + 'px';
+  dd.style.width = r.width + 'px';
+  dd.style.top = r.bottom + 'px';
+  dd.style.maxHeight = Math.min(220, window.innerHeight - r.bottom - 8) + 'px';
+  dd.style.display = 'block';
+}
+
+function selectLibDist(el) {
+  document.getElementById('library-f-distillery').value = el.dataset.name;
+  const reg = document.getElementById('library-f-region');
+  if (reg && !reg.value.trim()) reg.value = el.dataset.region;
+  closeLibDistDd();
+}
+
+function closeLibDistDd() {
+  const dd = document.getElementById('libDistDropdown');
+  if (dd) dd.style.display = 'none';
+  _libDistIdx = -1;
+}
+
+function libDistKeyNav(e) {
+  const dd = document.getElementById('libDistDropdown');
+  if (!dd || dd.style.display === 'none') return;
+  const opts = dd.querySelectorAll('.distillery-option');
+  if (!opts.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _libDistIdx = Math.min(_libDistIdx + 1, opts.length - 1);
+    opts.forEach((o, i) => o.classList.toggle('active', i === _libDistIdx));
+    opts[_libDistIdx]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _libDistIdx = Math.max(_libDistIdx - 1, 0);
+    opts.forEach((o, i) => o.classList.toggle('active', i === _libDistIdx));
+    opts[_libDistIdx]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && _libDistIdx >= 0) {
+    e.preventDefault();
+    opts[_libDistIdx]?.dispatchEvent(new MouseEvent('mousedown'));
+  } else if (e.key === 'Escape') {
+    closeLibDistDd();
+  }
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#libraryFormModal .distillery-wrap')) closeLibDistDd();
+});
+
+// ── Library ────────────────────────────────────────────────────────────────────
+function libraryLoad() { try { return JSON.parse(localStorage.getItem('wic_library') || '[]'); } catch { return []; } }
+function librarySave(data) { localStorage.setItem('wic_library', JSON.stringify(data)); }
+
+let _libraryPendingBottles = [];
+let _libraryEditId = null;
+
+// ── Library filter state ──────────────────────────────────────────────────────
+const _libFilters = { search: '', scoreMin: 0, regions: [], priceMax: Infinity };
+
+function parsePrice(str) {
+  if (!str) return null;
+  const n = parseFloat((str + '').replace(/[^0-9.]/g, ''));
+  return isNaN(n) ? null : n;
+}
+
+function sortKeyForName(name) {
+  // Strip leading "The ", then leading age expressions like "18 yo", "12 Year Old"
+  return (name || '')
+    .replace(/^the\s+/i, '')
+    .replace(/^\d+\s*(year[s]?(\s+old)?|yr[s]?(\s+old)?|y\.?o\.?)\s+/i, '')
+    .replace(/^\d+\s+/,'')
+    .toLowerCase()
+    .trim();
+}
+
+function libHasActiveFilters() {
+  return _libFilters.search || _libFilters.scoreMin > 0 ||
+    _libFilters.regions.length > 0 || _libFilters.priceMax < Infinity;
+}
+
+function libActiveFilterCount() {
+  let n = 0;
+  if (_libFilters.scoreMin > 0) n++;
+  if (_libFilters.regions.length) n++;
+  if (_libFilters.priceMax < Infinity) n++;
+  return n;
+}
+
+function onLibSearch(val) {
+  _libFilters.search = val.trim().toLowerCase();
+  const clr = document.getElementById('libSearchClear');
+  if (clr) clr.style.display = val ? 'block' : 'none';
+  renderLibrary();
+}
+
+function clearLibSearch() {
+  _libFilters.search = '';
+  const el = document.getElementById('libSearch'); if (el) el.value = '';
+  const clr = document.getElementById('libSearchClear'); if (clr) clr.style.display = 'none';
+  renderLibrary();
+}
+
+function openLibFilterDrawer() {
+  buildLibFilterDrawerBody();
+  document.getElementById('libFilterDrawer').classList.add('open');
+  document.getElementById('libFilterBackdrop').classList.add('open');
+}
+
+function closeLibFilterDrawer() {
+  document.getElementById('libFilterDrawer').classList.remove('open');
+  document.getElementById('libFilterBackdrop').classList.remove('open');
+}
+
+function clearAllLibFilters() {
+  _libFilters.scoreMin = 0;
+  _libFilters.regions = [];
+  _libFilters.priceMax = Infinity;
+  buildLibFilterDrawerBody();
+  renderLibrary();
+}
+
+function buildLibFilterDrawerBody() {
+  const bottles = libraryLoad();
+  const tastings = dbLoad();
+
+  // Collect regions from data
+  const regions = [...new Set(bottles.map(b => b.region).filter(Boolean))].sort();
+
+  // Compute price range from data
+  const prices = bottles.map(b => parsePrice(b.pricePaid)).filter(v => v !== null);
+  const maxPrice = prices.length ? Math.ceil(Math.max(...prices) / 10) * 10 : 500;
+
+  // Count after current filters applied (for match count display)
+  const filtered = applyLibFilters(bottles, tastings);
+  const countEl = document.getElementById('libFilterMatchCount');
+  if (countEl) countEl.textContent = `${filtered.length} of ${bottles.length} bottle${bottles.length !== 1 ? 's' : ''}`;
+
+  const scorePct = _libFilters.scoreMin;
+  const priceVal = _libFilters.priceMax < Infinity ? _libFilters.priceMax : maxPrice;
+  const pricePct = maxPrice > 0 ? Math.round((priceVal / maxPrice) * 100) : 100; // 100% = full amber (no price limit)
+
+  document.getElementById('libFilterDrawerBody').innerHTML = `
+    <div class="fd-section">
+      <div class="fd-section-title">Min Tasting Score</div>
+      <div class="fd-score-header">
+        <span style="font-size:11px;color:var(--tf-dim);">Only show bottles I've scored</span>
+        <span class="fd-score-val" id="libScoreLabel">${_libFilters.scoreMin > 0 ? '≥ ' + _libFilters.scoreMin : 'Any'}</span>
+      </div>
+      <div class="fd-range-wrap">
+        <input type="range" class="fd-range" min="0" max="100" step="5"
+          value="${_libFilters.scoreMin}" style="--fill:${scorePct}%"
+          oninput="setLibScoreMin(this.value,this)">
+      </div>
+      <div class="fd-range-labels"><span>Any</span><span>100</span></div>
+    </div>
+    ${prices.length ? `<div class="fd-section">
+      <div class="fd-section-title">Max Price</div>
+      <div class="fd-score-header">
+        <span style="font-size:11px;color:var(--tf-dim);">Show bottles up to</span>
+        <span class="fd-score-val" id="libPriceLabel">${_libFilters.priceMax < Infinity ? '≤ ' + Math.round(_libFilters.priceMax) : 'Any'}</span>
+      </div>
+      <div class="fd-range-wrap">
+        <input type="range" class="fd-range fd-range-inverted" min="0" max="${maxPrice}" step="5"
+          value="${priceVal}" style="--fill:${pricePct}%"
+          oninput="setLibPriceMax(this.value,this,${maxPrice})">
+      </div>
+      <div class="fd-range-labels"><span>0</span><span>${maxPrice}</span></div>
+    </div>` : ''}
+    ${regions.length ? `<div class="fd-section">
+      <div class="fd-section-title">Region</div>
+      <div class="fd-tag-grid${regions.length > 8 ? ' scrollable' : ''}">
+        ${regions.map(r => `<button class="fd-tag${_libFilters.regions.includes(r) ? ' active' : ''}" onclick="toggleLibRegion('${r.replace(/'/g,"\'")}');buildLibFilterDrawerBody()">${r}</button>`).join('')}
+      </div>
+    </div>` : ''}
+  `;
+}
+
+function setLibScoreMin(val, el) {
+  _libFilters.scoreMin = parseInt(val);
+  const lbl = document.getElementById('libScoreLabel');
+  if (lbl) lbl.textContent = _libFilters.scoreMin > 0 ? '≥ ' + _libFilters.scoreMin : 'Any';
+  const pct = _libFilters.scoreMin;
+  el.style.setProperty('--fill', pct + '%');
+  const countEl = document.getElementById('libFilterMatchCount');
+  if (countEl) {
+    const bottles = libraryLoad(), tastings = dbLoad();
+    const f = applyLibFilters(bottles, tastings);
+    countEl.textContent = `${f.length} of ${bottles.length} bottle${bottles.length !== 1 ? 's' : ''}`;
+  }
+  renderLibrary();
+}
+
+function setLibPriceMax(val, el, maxPrice) {
+  const v = parseInt(val);
+  _libFilters.priceMax = v >= maxPrice ? Infinity : v;
+  const lbl = document.getElementById('libPriceLabel');
+  if (lbl) lbl.textContent = _libFilters.priceMax < Infinity ? '≤ ' + v : 'Any';
+  const pct = maxPrice > 0 ? Math.round((v / maxPrice) * 100) : 100;
+  el.style.setProperty('--fill', pct + '%');
+  const countEl = document.getElementById('libFilterMatchCount');
+  if (countEl) {
+    const bottles = libraryLoad(), tastings = dbLoad();
+    const f = applyLibFilters(bottles, tastings);
+    countEl.textContent = `${f.length} of ${bottles.length} bottle${bottles.length !== 1 ? 's' : ''}`;
+  }
+  renderLibrary();
+}
+
+function toggleLibRegion(r) {
+  const idx = _libFilters.regions.indexOf(r);
+  if (idx >= 0) _libFilters.regions.splice(idx, 1); else _libFilters.regions.push(r);
+  renderLibrary();
+}
+
+function applyLibFilters(bottles, tastings) {
+  return bottles.filter(b => {
+    // Search
+    if (_libFilters.search) {
+      const q = _libFilters.search;
+      const hay = [b.name, b.distillery, b.region, b.bottler, b.notes].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    // Region
+    if (_libFilters.regions.length && !_libFilters.regions.includes(b.region)) return false;
+    // Price
+    if (_libFilters.priceMax < Infinity) {
+      const p = parsePrice(b.pricePaid);
+      if (p === null || p > _libFilters.priceMax) return false;
+    }
+    // Score
+    if (_libFilters.scoreMin > 0) {
+      const match = bestLibraryMatch(b, tastings);
+      if (!match || match.tasting.score < _libFilters.scoreMin) return false;
+    }
+    return true;
+  });
+}
+
+function updateLibFilterUI() {
+  const n = libActiveFilterCount();
+  const badge = document.getElementById('libFilterCountBadge');
+  if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'flex' : 'none'; }
+  // Chips
+  const chipsRow = document.getElementById('libChipsRow');
+  if (!chipsRow) return;
+  const chips = [];
+  if (_libFilters.scoreMin > 0)
+    chips.push(`Score ≥ ${_libFilters.scoreMin} <button onclick="_libFilters.scoreMin=0;renderLibrary()" style="background:none;border:none;cursor:pointer;font-size:11px;margin-left:3px;padding:0;color:inherit;">×</button>`);
+  if (_libFilters.priceMax < Infinity)
+    chips.push(`Price ≤ ${Math.round(_libFilters.priceMax)} <button onclick="_libFilters.priceMax=Infinity;renderLibrary()" style="background:none;border:none;cursor:pointer;font-size:11px;margin-left:3px;padding:0;color:inherit;">×</button>`);
+  _libFilters.regions.forEach(r =>
+    chips.push(`${r} <button onclick="_libFilters.regions.splice(_libFilters.regions.indexOf('${r.replace(/'/g,"\'")}'),1);renderLibrary()" style="background:none;border:none;cursor:pointer;font-size:11px;margin-left:3px;padding:0;color:inherit;">×</button>`)
+  );
+  chipsRow.innerHTML = chips.map(c => `<span class="hist-chip">${c}</span>`).join('');
+  chipsRow.style.display = chips.length ? 'flex' : 'none';
+}
+
+function showLibraryView() {
+  renderLibrary();
+}
+
+// Composite score: how well does a tasting record match a library bottle?
+function libraryMatchScore(bottle, tasting) {
+  let score = 0;
+  const norm = s => (s || '').toLowerCase().trim();
+  const bDist = norm(bottle.distillery), tDist = norm(tasting.distillery);
+  if (bDist && tDist) {
+    if (bDist === tDist) score += 50;
+    else if (bDist.includes(tDist) || tDist.includes(bDist)) score += 25;
+  }
+  // Age match — strip "years / yrs" for comparison
+  const normAge = a => norm(a).replace(/\s*(years?|yrs?)\s*/g, '').trim();
+  const bAge = normAge(bottle.age), tAge = normAge(tasting.age);
+  if (bAge && tAge && bAge === tAge) score += 25;
+  // Name word-overlap (Jaccard)
+  const words = s => new Set(norm(s).replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean));
+  const bW = words(bottle.name), tW = words(tasting.name);
+  const intersection = [...bW].filter(w => tW.has(w)).length;
+  const union = new Set([...bW, ...tW]).size;
+  if (union > 0) score += Math.round((intersection / union) * 25);
+  return score;
+}
+
+function bestLibraryMatch(bottle, tastings) {
+  const THRESHOLD = 50; // must at least match distillery
+  const scored = tastings
+    .filter(t => t.score != null)
+    .map(t => ({ t, s: libraryMatchScore(bottle, t) }))
+    .filter(x => x.s >= THRESHOLD)
+    .sort((a, b) => b.s - a.s);
+  if (!scored.length) return null;
+  // Group by confidence tier and return highest-scoring tasting
+  return { tasting: scored[0].t, count: scored.length, confidence: scored[0].s };
+}
+
+function renderLibrary() {
+  const bottles = libraryLoad();
+  const el = document.getElementById('libraryList');
+  if (!el) return;
+  const countEl = document.getElementById('libraryCount');
+  if (countEl) countEl.textContent = bottles.length ? `${bottles.length} bottle${bottles.length !== 1 ? 's' : ''}` : '';
+  if (!bottles.length) {
+    el.innerHTML = `<div class="empty-state"><h2>No bottles yet</h2><p>Add your first bottle by photographing a label or entering details manually.</p></div>`;
+    return;
+  }
+  const tastings = dbLoad();
+  const sort = document.getElementById('libSort')?.value || 'dist-asc';
+
+  const filtered = applyLibFilters(bottles, tastings);
+  updateLibFilterUI();
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === 'name-asc') return sortKeyForName(a.name).localeCompare(sortKeyForName(b.name));
+    if (sort === 'score-desc' || sort === 'score-asc') {
+      const sa = bestLibraryMatch(a, tastings)?.tasting.score ?? -1;
+      const sb = bestLibraryMatch(b, tastings)?.tasting.score ?? -1;
+      return sort === 'score-desc' ? sb - sa : sa - sb;
+    }
+    if (sort === 'price-asc' || sort === 'price-desc') {
+      const pa = parsePrice(a.pricePaid) ?? (sort === 'price-asc' ? Infinity : -1);
+      const pb = parsePrice(b.pricePaid) ?? (sort === 'price-asc' ? Infinity : -1);
+      return sort === 'price-asc' ? pa - pb : pb - pa;
+    }
+    if (sort === 'qty-desc') return (b.quantity || 1) - (a.quantity || 1);
+    // dist-asc (default)
+    const d = (a.distillery || '').localeCompare(b.distillery || '');
+    return d !== 0 ? d : (a.name || '').localeCompare(b.name || '');
+  });
+
+  if (countEl) countEl.textContent = filtered.length
+    ? `${filtered.length}${filtered.length !== bottles.length ? ' of ' + bottles.length : ''} bottle${filtered.length !== 1 ? 's' : ''}`
+    : '';
+
+  if (!filtered.length && bottles.length) {
+    el.innerHTML = `<div class="empty-state"><h2>No matches</h2><p>Try adjusting your search or filters.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = sorted.map(b => {
+    const ageStr = b.age ? (b.age.match(/year|yr/i) ? b.age : b.age + ' years') : '';
+    const abvStr = b.abv ? b.abv.replace('%','').trim() + '% ABV' : '';
+    const meta = [b.distillery ? `<strong>${esc(b.distillery)}</strong>` : '', b.region, ageStr, abvStr].filter(Boolean).map((v, i) => i === 0 ? v : esc(v)).join(' · ');
+    const pricePart = b.pricePaid ? `Paid ${esc(b.pricePaid)}` : '';
+    const wherePart = b.whereBought ? `@ ${esc(b.whereBought)}` : '';
+    const sub = [pricePart, wherePart].filter(Boolean).join(' ');
+    const match = bestLibraryMatch(b, tastings);
+    const scorePart = match
+      ? `<span style="color:var(--amber);font-weight:600;">★ ${match.tasting.score}/100${match.count > 1 ? ` (${match.count})` : ''}</span>`
+      : '';
+    const metaWithScore = [meta, scorePart].filter(Boolean).join(' · ');
+    const notesEscaped = (b.notes || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const aiBlock = b.aiDescription
+      ? `<div class="library-ai-desc-label">About this bottle</div><div style="font-size:12px;color:var(--tf);line-height:1.65;">${esc(b.aiDescription).replace(/\n/g,'<br>')}</div>`
+      : `<button class="library-desc-btn" onclick="fetchLibraryDescription('${b.id}')">✦ Describe this bottle</button>`;
+    return `<div class="library-card" id="lcard-${b.id}">
+      <div class="library-card-inner" onclick="toggleLibraryExpand('${b.id}')">
+        <div class="library-card-main">
+          <div class="library-card-name">${esc(b.name || 'Unnamed')}</div>
+          ${metaWithScore ? `<div class="library-card-meta">${metaWithScore}</div>` : ''}
+          ${sub ? `<div class="library-card-meta" style="color:var(--tf-dim);margin-top:2px;">${sub}</div>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          <div class="library-qty-badge">×${b.quantity || 1}</div>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editLibraryBottle('${b.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteLibraryBottle('${b.id}')">Remove</button>
+          <span class="library-card-chevron">▾</span>
+        </div>
+      </div>
+      <div class="library-expand">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--tf-dim);margin-bottom:6px;">Notes</div>
+        <textarea class="library-expand-notes" placeholder="Add personal notes…" onblur="saveLibraryNote('${b.id}', this.value)">${notesEscaped}</textarea>
+        <div class="library-ai-desc" id="laidesc-${b.id}">${aiBlock}</div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);text-align:right;">
+          <button class="library-desc-btn" onclick="event.stopPropagation();startTastingFromLibrary('${b.id}')">→ Start tasting note</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleLibraryExpand(id) {
+  const card = document.getElementById('lcard-' + id);
+  if (!card) return;
+  const isOpen = card.classList.contains('expanded');
+  // Collapse any currently open card
+  document.querySelectorAll('.library-card.expanded').forEach(c => c.classList.remove('expanded'));
+  // Open this one unless it was already open
+  if (!isOpen) card.classList.add('expanded');
+}
+
+function startTastingFromLibrary(id) {
+  const bottles = libraryLoad();
+  const b = bottles.find(x => x.id === id);
+  if (!b) return;
+  switchTab('tastings');
+  showNewForm();
+  const set = (fid, val) => { const el = document.getElementById(fid); if (el && val) el.value = val; };
+  set('f-name', b.name);
+  set('f-distillery', b.distillery);
+  set('f-region', b.region);
+  set('f-age', b.age);
+  set('f-abv', b.abv);
+  set('f-bottler', b.bottler);
+}
+
+function saveLibraryNote(id, text) {
+  const bottles = libraryLoad();
+  const idx = bottles.findIndex(b => b.id === id);
+  if (idx < 0) return;
+  bottles[idx].notes = text.trim();
+  librarySave(bottles);
+}
+
+async function fetchLibraryDescription(id) {
+  const key = loadApiKey();
+  if (!key) { showToast('Enter and save your Claude API key first'); return; }
+  const bottles = libraryLoad();
+  const b = bottles.find(x => x.id === id);
+  if (!b) return;
+  const descEl = document.getElementById('laidesc-' + id);
+  if (!descEl) return;
+  descEl.innerHTML = `<div style="font-size:11px;color:var(--tf-dim);font-style:italic;">Generating description…</div>`;
+  const parts = [
+    b.name,
+    b.distillery,
+    b.region,
+    b.age ? (b.age.match(/year|yr/i) ? b.age : b.age + ' years') : '',
+    b.abv ? b.abv + ' ABV' : '',
+    b.bottler ? 'bottled by ' + b.bottler : ''
+  ].filter(Boolean);
+  const prompt = `Write a concise 2-3 sentence description of this whisky for a personal tasting journal: ${parts.join(', ')}. Cover the distillery's character and what to expect from this expression — style, regional notes, and any distinctive traits. Keep it informative but warm in tone.`;
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
+      }),
+    });
+    if (!response.ok) throw new Error(`API error ${response.status}`);
+    const data = await response.json();
+    const description = (data.content?.[0]?.text || '').trim();
+    const bottles2 = libraryLoad();
+    const idx = bottles2.findIndex(x => x.id === id);
+    if (idx >= 0) { bottles2[idx].aiDescription = description; librarySave(bottles2); }
+    descEl.innerHTML = `<div class="library-ai-desc-label">About this bottle</div><div style="font-size:12px;color:var(--tf);line-height:1.65;">${esc(description).replace(/\n/g, '<br>')}</div>`;
+  } catch (err) {
+    descEl.innerHTML = `<button class="library-desc-btn" onclick="fetchLibraryDescription('${id}')">✦ Describe this bottle</button>`;
+    showToast('Could not generate description: ' + err.message);
+  }
+}
+
+async function onLibraryPhotoCapture(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const btn = document.getElementById('libraryPhotoBtn');
+  btn.textContent = 'Reading…';
+  btn.disabled = true;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const dataUrl = e.target.result;
+    const [header, b64] = dataUrl.split(',');
+    const mediaType = header.match(/data:(.*);/)[1] || 'image/jpeg';
+    const key = loadApiKey();
+    if (!key) {
+      showToast('Enter and save your Claude API key first');
+      btn.textContent = 'Add via photo'; btn.disabled = false;
+      return;
+    }
+    btn.textContent = 'Identifying…';
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+            { type: 'text', text: 'Look at this photo of one or more whisky bottles. Identify every bottle you can see clearly. For each, extract what you can read from the label. Return ONLY a JSON array (even for a single bottle): [{"name":"full bottle name","distillery":"distillery name","region":"region if visible","age":"e.g. 12 years or NAS","distYear":1997,"abv":"e.g. 46%","bottler":"independent bottler name if applicable","type":"ob or ib or cask or other"}]. Omit fields you cannot determine. Return only the JSON array, no other text.' }
+          ]}]
+        }),
+      });
+      if (!response.ok) throw new Error(`API error ${response.status}`);
+      const data = await response.json();
+      const text = (data.content?.[0]?.text || '').trim();
+      const m = text.match(/\[[\s\S]*\]/);
+      if (!m) throw new Error('Could not identify bottles');
+      const bottles = JSON.parse(m[0]);
+      if (!bottles.length) throw new Error('No bottles identified in photo');
+      openLibraryBatchConfirm(bottles);
+    } catch (err) {
+      showToast('Could not identify bottles: ' + err.message);
+    }
+    btn.textContent = 'Add via photo'; btn.disabled = false;
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function openLibraryBatchConfirm(bottles) {
+  _libraryPendingBottles = bottles.map(b => ({ ...b, quantity: 1, pricePaid: '', whereBought: '' }));
+  renderLibraryBatchModal();
+  document.getElementById('libraryBatchModal').classList.add('open');
+}
+
+function renderLibraryBatchModal() {
+  const el = document.getElementById('libraryBatchBody');
+  if (!el) return;
+  el.innerHTML = _libraryPendingBottles.map((b, i) => `
+    <div class="library-batch-item">
+      <div style="font-weight:600;font-size:13px;margin-bottom:10px;color:var(--tf-dim);">Bottle ${i + 1}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="field-group" style="grid-column:1/-1;"><label class="field-label">Name</label><input class="field-input" value="${esc(b.name||'')}" oninput="_libraryPendingBottles[${i}].name=this.value"></div>
+        <div class="field-group"><label class="field-label">Distillery</label><input class="field-input" value="${esc(b.distillery||'')}" oninput="_libraryPendingBottles[${i}].distillery=this.value"></div>
+        <div class="field-group"><label class="field-label">Region</label><input class="field-input" value="${esc(b.region||'')}" oninput="_libraryPendingBottles[${i}].region=this.value"></div>
+        <div class="field-group"><label class="field-label">Age</label><input class="field-input" value="${esc(b.age||'')}" oninput="_libraryPendingBottles[${i}].age=this.value"></div>
+        <div class="field-group"><label class="field-label">ABV</label><input class="field-input" value="${esc(b.abv||'')}" oninput="_libraryPendingBottles[${i}].abv=this.value"></div>
+        <div class="field-group"><label class="field-label">Quantity</label><input class="field-input" type="number" min="1" value="${b.quantity||1}" oninput="_libraryPendingBottles[${i}].quantity=parseInt(this.value)||1"></div>
+        <div class="field-group"><label class="field-label">Price Paid</label><input class="field-input" placeholder="e.g. £85" value="${esc(b.pricePaid||'')}" oninput="_libraryPendingBottles[${i}].pricePaid=this.value"></div>
+        <div class="field-group" style="grid-column:1/-1;"><label class="field-label">Purchased From</label><input class="field-input" placeholder="e.g. The Whisky Exchange" value="${esc(b.whereBought||'')}" oninput="_libraryPendingBottles[${i}].whereBought=this.value"></div>
+      </div>
+      ${_libraryPendingBottles.length > 1 ? `<button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="removeLibraryBatchItem(${i})">Remove this bottle</button>` : ''}
+    </div>
+    ${i < _libraryPendingBottles.length - 1 ? '<hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">' : ''}
+  `).join('');
+}
+
+function removeLibraryBatchItem(idx) {
+  _libraryPendingBottles.splice(idx, 1);
+  if (!_libraryPendingBottles.length) { closeLibraryBatchModal(); return; }
+  renderLibraryBatchModal();
+}
+
+function saveLibraryBatch() {
+  if (!_libraryPendingBottles.length) return;
+  const bottles = libraryLoad();
+  _libraryPendingBottles.forEach(b => {
+    bottles.push({
+      id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      name: b.name || '',
+      distillery: b.distillery || '',
+      region: b.region || '',
+      age: b.age || '',
+      abv: b.abv || '',
+      distYear: b.distYear || null,
+      bottler: b.bottler || '',
+      type: b.type || 'ob',
+      quantity: b.quantity || 1,
+      pricePaid: b.pricePaid || '',
+      currentValue: '',
+      whereBought: b.whereBought || '',
+      addedAt: new Date().toISOString(),
+    });
+  });
+  librarySave(bottles);
+  const n = _libraryPendingBottles.length;
+  _libraryPendingBottles = [];
+  closeLibraryBatchModal();
+  renderLibrary();
+  showToast(`${n} bottle${n !== 1 ? 's' : ''} added to your library`);
+}
+
+function closeLibraryBatchModal() {
+  document.getElementById('libraryBatchModal').classList.remove('open');
+}
+
+function openAddLibraryForm() {
+  _libraryEditId = null;
+  document.getElementById('libraryFormTitle').textContent = 'Add Bottle';
+  ['library-f-name','library-f-distillery','library-f-region','library-f-age','library-f-abv','library-f-bottler','library-f-price','library-f-where'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const qtyEl = document.getElementById('library-f-qty'); if (qtyEl) qtyEl.value = '1';
+  document.getElementById('libraryFormModal').classList.add('open');
+}
+
+function editLibraryBottle(id) {
+  const bottles = libraryLoad();
+  const b = bottles.find(x => x.id === id);
+  if (!b) return;
+  _libraryEditId = id;
+  document.getElementById('libraryFormTitle').textContent = 'Edit Bottle';
+  const set = (fid, val) => { const el = document.getElementById(fid); if (el) el.value = val || ''; };
+  set('library-f-name', b.name);
+  set('library-f-distillery', b.distillery);
+  set('library-f-region', b.region);
+  set('library-f-age', b.age);
+  set('library-f-abv', b.abv);
+  set('library-f-bottler', b.bottler);
+  set('library-f-qty', b.quantity || 1);
+  set('library-f-price', b.pricePaid);
+  set('library-f-where', b.whereBought);
+  document.getElementById('libraryFormModal').classList.add('open');
+}
+
+function saveLibraryForm() {
+  const get = id => (document.getElementById(id)?.value || '').trim();
+  const name = get('library-f-name');
+  if (!name) { showToast('Bottle name is required'); return; }
+  const bottles = libraryLoad();
+  const existing = _libraryEditId ? bottles.find(b => b.id === _libraryEditId) : null;
+  const entry = {
+    id: _libraryEditId || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2,7)),
+    name,
+    distillery: get('library-f-distillery'),
+    region: get('library-f-region'),
+    age: get('library-f-age'),
+    abv: get('library-f-abv'),
+    bottler: get('library-f-bottler'),
+    quantity: parseInt(document.getElementById('library-f-qty')?.value) || 1,
+    pricePaid: get('library-f-price'),
+    currentValue: existing?.currentValue || '',
+    whereBought: get('library-f-where'),
+    notes: existing?.notes || '',
+    aiDescription: existing?.aiDescription || '',
+    addedAt: existing?.addedAt || new Date().toISOString(),
+  };
+  if (_libraryEditId) {
+    const idx = bottles.findIndex(b => b.id === _libraryEditId);
+    if (idx >= 0) bottles[idx] = entry; else bottles.push(entry);
+  } else {
+    bottles.push(entry);
+  }
+  librarySave(bottles);
+  closeLibraryForm();
+  renderLibrary();
+  showToast(_libraryEditId ? 'Bottle updated' : 'Bottle added');
+}
+
+function deleteLibraryBottle(id) {
+  const bottles = libraryLoad();
+  const b = bottles.find(x => x.id === id);
+  const body = document.getElementById('deleteModalBody');
+  if (body) body.innerHTML = `Remove <strong>${esc(b?.name || 'this bottle')}</strong> from your library? This cannot be undone.`;
+  _deleteTargetId = '__library__' + id;
+  document.getElementById('deleteModal').classList.add('open');
+}
+
+function closeLibraryForm() {
+  document.getElementById('libraryFormModal').classList.remove('open');
+  _libraryEditId = null;
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -7300,6 +8239,95 @@ renderSpinFavs();
     <button class="btn btn-secondary btn-sm" onclick="closeSourcedModal()">Close</button>
   </div>
 </div>
+<!-- ══ Library view ══ -->
+<div id="view-library" class="view">
+  <div class="container">
+    <div class="history-toolbar">
+      <div>
+        <div class="history-title">LIBRARY</div>
+        <div class="history-count" id="libraryCount"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-secondary btn-sm" id="libraryPhotoBtn" onclick="document.getElementById('libraryPhotoInput').click()" title="Photograph bottles to add them">Add via photo</button>
+        <input type="file" id="libraryPhotoInput" accept="image/*" style="display:none" onchange="onLibraryPhotoCapture(this)">
+        <button class="btn btn-primary" onclick="openAddLibraryForm()">+ Add Bottle</button>
+      </div>
+    </div>
+    <div class="hist-filter-bar" id="libFilterBar">
+      <div class="hist-filter-row">
+        <div class="hist-search-wrap">
+          <input type="text" id="libSearch" placeholder="Search name, distillery, region…"
+            oninput="onLibSearch(this.value)" autocomplete="off" spellcheck="false">
+          <button class="hist-search-clear" id="libSearchClear" onclick="clearLibSearch()" title="Clear">×</button>
+        </div>
+        <select class="hist-sort" id="libSort" onchange="renderLibrary()">
+          <option value="dist-asc">Distillery A–Z</option>
+          <option value="name-asc">Name A–Z</option>
+          <option value="score-desc">Score ↓</option>
+          <option value="score-asc">Score ↑</option>
+          <option value="price-asc">Price ↑</option>
+          <option value="price-desc">Price ↓</option>
+          <option value="qty-desc">Quantity ↓</option>
+        </select>
+        <button class="filter-icon-btn" id="libFilterBtn" onclick="openLibFilterDrawer()" title="Filter library">
+          <svg width="15" height="13" viewBox="0 0 15 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <line x1="1" y1="2" x2="14" y2="2"/><circle cx="11" cy="2" r="1.8" fill="currentColor" stroke="none"/>
+            <line x1="1" y1="6.5" x2="14" y2="6.5"/><circle cx="4.5" cy="6.5" r="1.8" fill="currentColor" stroke="none"/>
+            <line x1="1" y1="11" x2="14" y2="11"/><circle cx="10" cy="11" r="1.8" fill="currentColor" stroke="none"/>
+          </svg>
+          <span class="filter-count-badge" id="libFilterCountBadge" style="display:none;"></span>
+        </button>
+      </div>
+      <div class="hist-chips-row" id="libChipsRow" style="display:none;"></div>
+    </div>
+    <div id="libraryList"></div>
+  </div>
+</div>
+
+<!-- ══ Library batch confirm modal ══ -->
+<div id="libraryBatchModal" class="modal-overlay" onclick="if(event.target===this)closeLibraryBatchModal()">
+  <div class="modal-card library-batch-modal-card">
+    <div class="modal-title">Confirm Bottles</div>
+    <div class="modal-body" style="font-size:12px;color:var(--tf-dim);margin-bottom:14px;">Review and correct what Claude identified. Add price and source if you know them.</div>
+    <div id="libraryBatchBody"></div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="saveLibraryBatch()">Add to Library</button>
+      <button class="btn btn-secondary" style="flex:1;justify-content:center;" onclick="closeLibraryBatchModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Library manual entry modal ══ -->
+<div id="libraryFormModal" class="modal-overlay" onclick="if(event.target===this)closeLibraryForm()">
+  <div class="modal-card" style="max-width:480px;">
+    <div class="modal-title" id="libraryFormTitle">Add Bottle</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="field-group span2"><label class="field-label">Bottle Name *</label><input class="field-input" id="library-f-name" placeholder="e.g. Springbank 15 Year Old" autocomplete="off"></div>
+      <div class="field-group">
+        <label class="field-label">Distillery</label>
+        <div class="distillery-wrap">
+          <input class="field-input" id="library-f-distillery" placeholder="e.g. Springbank" autocomplete="off"
+            oninput="filterLibDist(this.value)"
+            onblur="setTimeout(closeLibDistDd, 150)"
+            onkeydown="libDistKeyNav(event)">
+          <div class="distillery-dropdown" id="libDistDropdown"></div>
+        </div>
+      </div>
+      <div class="field-group"><label class="field-label">Region</label><input class="field-input" id="library-f-region" placeholder="Auto-filled" autocomplete="off"></div>
+      <div class="field-group"><label class="field-label">Age</label><input class="field-input" id="library-f-age" placeholder="e.g. 15 years" autocomplete="off"></div>
+      <div class="field-group"><label class="field-label">ABV</label><input class="field-input" id="library-f-abv" placeholder="e.g. 46%" autocomplete="off"></div>
+      <div class="field-group"><label class="field-label">Bottler</label><input class="field-input" id="library-f-bottler" placeholder="If independent" autocomplete="off"></div>
+      <div class="field-group"><label class="field-label">Quantity</label><input class="field-input" id="library-f-qty" type="number" min="1" value="1"></div>
+      <div class="field-group"><label class="field-label">Price Paid</label><input class="field-input" id="library-f-price" placeholder="e.g. £85" autocomplete="off"></div>
+      <div class="field-group span2"><label class="field-label">Purchased From</label><input class="field-input" id="library-f-where" placeholder="e.g. The Whisky Exchange" autocomplete="off"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="saveLibraryForm()">Save</button>
+      <button class="btn btn-secondary" style="flex:1;justify-content:center;" onclick="closeLibraryForm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="filter-backdrop" id="filterBackdrop" onclick="closeFilterDrawer()"></div>
 <div class="filter-drawer" id="filterDrawer">
   <div class="filter-drawer-header">
@@ -7312,6 +8340,21 @@ renderSpinFavs();
     <div style="display:flex;gap:8px;">
       <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;" onclick="clearAllFilters()">Clear</button>
       <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center;" onclick="closeFilterDrawer()">Apply</button>
+    </div>
+  </div>
+</div>
+<div class="filter-backdrop" id="libFilterBackdrop" onclick="closeLibFilterDrawer()"></div>
+<div class="filter-drawer" id="libFilterDrawer">
+  <div class="filter-drawer-header">
+    <span class="filter-drawer-title">Filter Library</span>
+    <button class="filter-drawer-close" onclick="closeLibFilterDrawer()">×</button>
+  </div>
+  <div class="filter-drawer-body" id="libFilterDrawerBody"></div>
+  <div class="filter-drawer-footer">
+    <div id="libFilterMatchCount" style="text-align:center;font-size:11px;color:var(--tf-dim);margin-bottom:10px;min-height:14px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;" onclick="clearAllLibFilters()">Clear</button>
+      <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center;" onclick="closeLibFilterDrawer()">Done</button>
     </div>
   </div>
 </div>
