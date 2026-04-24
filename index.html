@@ -959,6 +959,121 @@ select.field-input {
 .btn-polish:hover { border-color: var(--amber); color: var(--amber); }
 .btn-polish:disabled { opacity: 0.4; cursor: default; }
 
+/* ── Chad modal ── */
+.chad-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  z-index: 900; display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+@media (min-width: 560px) { .chad-overlay { align-items: center; } }
+.chad-overlay.open { opacity: 1; pointer-events: all; }
+.chad-card {
+  background: var(--cream); border-radius: 12px 12px 0 0; width: 100%; max-width: 600px;
+  height: 88vh; display: flex; flex-direction: column;
+  box-shadow: 0 -8px 48px rgba(0,0,0,0.3);
+  transform: translateY(20px); transition: transform 0.22s;
+}
+@media (min-width: 560px) {
+  .chad-card { border-radius: 10px; height: 82vh; max-height: 700px; }
+}
+.chad-overlay.open .chad-card { transform: translateY(0); }
+.chad-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.chad-title { font-size: 13px; font-weight: 700; color: var(--tf); display: flex; align-items: center; gap: 7px; }
+.chad-title-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+.chad-whisky-pill {
+  font-size: 10px; font-weight: 600; color: var(--tf-dim); background: var(--border);
+  border-radius: 10px; padding: 2px 8px; max-width: 180px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.chad-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--tf-dim); padding: 2px 4px; line-height: 1; }
+@media (hover: hover) { .chad-close:hover { color: var(--tf); } }
+.chad-messages {
+  flex: 1; overflow-y: auto; padding: 16px 18px 8px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.chad-msg { max-width: 88%; display: flex; flex-direction: column; gap: 3px; }
+.chad-msg.user { align-self: flex-end; align-items: flex-end; }
+.chad-msg.ai   { align-self: flex-start; }
+.chad-bubble {
+  padding: 9px 13px; border-radius: 12px; font-size: 13px; line-height: 1.55;
+  color: var(--tf); white-space: pre-wrap; word-break: break-word;
+}
+.chad-msg.user .chad-bubble { background: var(--amber); color: #fff; border-bottom-right-radius: 4px; }
+.chad-msg.ai   .chad-bubble { background: var(--dark); color: var(--tb); border-bottom-left-radius: 4px; }
+.chad-bubble.typing { opacity: 0.5; font-style: italic; }
+.chad-synthesis-card {
+  background: linear-gradient(135deg, rgba(229,91,32,0.07) 0%, rgba(229,91,32,0.03) 100%);
+  border: 1px solid rgba(229,91,32,0.25); border-radius: 10px; padding: 14px 16px;
+  margin: 4px 0; align-self: stretch;
+}
+.chad-synthesis-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 8px;
+}
+.chad-synthesis-text { font-size: 13px; line-height: 1.6; color: var(--tf); white-space: pre-wrap; }
+.chad-synthesis-actions { display: flex; gap: 8px; margin-top: 10px; }
+.chad-use-btn {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  background: var(--amber); color: #fff; border: none; border-radius: 4px;
+  padding: 5px 12px; cursor: pointer; font-family: inherit; transition: opacity 0.15s;
+}
+.chad-use-btn:hover { opacity: 0.88; }
+.chad-copy-btn {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  background: none; color: var(--tf-dim); border: 1px solid var(--border); border-radius: 4px;
+  padding: 5px 12px; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.chad-copy-btn:hover { border-color: var(--tf-dim); color: var(--tf); }
+.chad-footer { padding: 10px 14px 14px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.chad-footer-actions { display: flex; gap: 7px; margin-bottom: 9px; }
+.chad-synthesize-btn {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  background: none; color: var(--tf-dim); border: 1px solid var(--border); border-radius: 3px;
+  padding: 4px 10px; cursor: pointer; font-family: inherit; transition: all 0.15s;
+  white-space: nowrap;
+}
+.chad-synthesize-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); }
+.chad-synthesize-btn:disabled { opacity: 0.4; cursor: default; }
+.chad-new-btn {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  background: none; color: var(--tf-dim); border: 1px solid var(--border); border-radius: 3px;
+  padding: 4px 10px; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.chad-new-btn:hover { border-color: var(--tf-dim); color: var(--tf); }
+.chad-input-row { display: flex; gap: 8px; align-items: flex-end; }
+.chad-textarea {
+  flex: 1; font-family: inherit; font-size: 13px; color: var(--tf);
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; resize: none; min-height: 40px; max-height: 120px;
+  outline: none; line-height: 1.45; overflow-y: auto;
+  transition: border-color 0.15s;
+}
+.chad-textarea:focus { border-color: var(--amber); }
+.chad-send-btn {
+  background: var(--amber); color: #fff; border: none; border-radius: 8px;
+  width: 38px; height: 38px; cursor: pointer; font-size: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.15s;
+}
+.chad-send-btn:hover:not(:disabled) { opacity: 0.85; }
+.chad-send-btn:disabled { opacity: 0.35; cursor: default; }
+.chad-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; color: var(--tf-dim); padding: 24px;
+}
+.chad-empty-icon { font-size: 28px; opacity: 0.5; }
+.chad-empty-text { font-size: 12px; text-align: center; line-height: 1.6; max-width: 260px; }
+.chad-empty-prompts { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; width: 100%; max-width: 300px; }
+.chad-prompt-chip {
+  font-size: 11px; color: var(--tf-dim); background: var(--bg); border: 1px solid var(--border);
+  border-radius: 16px; padding: 6px 14px; cursor: pointer; text-align: center;
+  transition: all 0.15s; font-family: inherit;
+}
+.chad-prompt-chip:hover { border-color: var(--amber); color: var(--amber); }
+
 /* ── Bottling type badge ── */
 .type-badge {
   display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: 0.08em;
@@ -1292,7 +1407,7 @@ select.field-input {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.11.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.15.0</div>
 
 <header class="app-header">
   <div>
@@ -1817,6 +1932,7 @@ select.field-input {
               <span class="section-sub" id="micStatus"></span>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn-polish" onclick="openChad()" title="Talk through the tasting with an AI expert">✦ Expert Chat</button>
               <button id="polishBtn" class="btn-polish" onclick="polishNotes()" title="Clean up notes with Claude">✦ Polish</button>
               <button id="undoPolishBtn" class="btn-polish" onclick="undoPolish()" title="Revert to original notes" style="display:none;">↩ Undo</button>
               <div class="score-field">
@@ -2026,7 +2142,16 @@ function showEditForm(id) {
   document.getElementById('formTitle').textContent = 'Edit Tasting';
   resetForm(); buildForm(); populateForm(t); showView('form');
 }
-function showDetail(id) { renderDetail(id); showView('detail'); }
+function showDetail(id) {
+  renderDetail(id);
+  showView('detail');
+  const t = dbGet(id);
+  if (t?.distillery) loadWhMarketData(t.distillery);
+  if (t?.name || t?.distillery) {
+    const q = (t.name || '').trim() || [t.distillery, t.age].filter(Boolean).join(' ');
+    loadWhRetailData(q);
+  }
+}
 
 // ── History filters ───────────────────────────────────────────────────────────
 
@@ -2859,6 +2984,7 @@ function renderDetail(id) {
           <button class="btn btn-secondary btn-sm" onclick="copySummary('${t.id}')">Copy</button>
           <button class="btn btn-primary btn-sm" onclick="showEditForm('${t.id}')">Edit</button>
           <button class="btn btn-danger btn-sm" onclick="confirmDelete('${t.id}')">Delete</button>
+          <button class="btn btn-secondary btn-sm" onclick="openWhiskystats('${esc(t.name||'')}','${esc(t.age||'')}','${esc(t.distillery||'')}')" title="Search secondary market prices on Whiskystats" style="margin-left:auto;">⊙ Prices</button>
         </div>
       </div>
     </div>
@@ -2914,6 +3040,24 @@ function renderDetail(id) {
         ${t.notes?`<div class="detail-notes">${esc(t.notes)}</div>`:`<span class="no-value">No notes recorded</span>`}
       </div>
     </div>
+    ${t.distillery ? `<div class="detail-section" id="whMarketSection">
+      <div class="detail-sec-head" style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="detail-sec-title">Secondary Market</span>
+        <span style="font-size:9px;color:var(--tf-dim);font-weight:400;">via Whisky Hunter · all GBP</span>
+      </div>
+      <div class="detail-body" id="whMarketBody">
+        <span class="no-value" style="font-size:11px;">Loading…</span>
+      </div>
+    </div>` : ''}
+    ${(t.name || t.distillery) ? `<div class="detail-section" id="whRetailSection">
+      <div class="detail-sec-head" style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="detail-sec-title">Retail Prices</span>
+        <span style="font-size:9px;color:var(--tf-dim);font-weight:400;">via Whisky Hunter · GBP</span>
+      </div>
+      <div class="detail-body" id="whRetailBody">
+        <span class="no-value" style="font-size:11px;">Loading…</span>
+      </div>
+    </div>` : ''}
     ${t.bottlingType === 'cask' ? (() => {
       const sym   = CURRENCY_SYMBOLS[t.caskCurrency || 'GBP'] || (t.caskCurrency || '£');
       const total = t.caskPrice || ((t.caskRLA && t.caskPriceRLA) ? t.caskRLA * t.caskPriceRLA : null);
@@ -2959,6 +3103,21 @@ function renderDetail(id) {
 }
 
 let _deleteTargetId = null;
+
+function openWhiskystats(name, age, distillery) {
+  // Build the best search query from what we have.
+  // Prefer the bottle name (which usually includes distillery + age statement).
+  // If the name looks like it already contains the age, use it as-is.
+  // Otherwise append the age for more precise results.
+  let q = (name || '').trim();
+  if (!q) q = (distillery || '').trim();
+  if (q && age && !q.match(/\d+\s*(yo|yr|year)/i) && !q.includes(age)) {
+    q = q + ' ' + age;
+  }
+  if (!q) { showToast('No whisky name to search'); return; }
+  const url = 'https://www.whiskystats.com/search?query=' + encodeURIComponent(q);
+  window.open(url, '_blank', 'noopener');
+}
 
 function confirmDelete(id) {
   const t = dbGet(id);
@@ -3284,6 +3443,612 @@ ${raw}`
   } finally {
     btn.disabled = false; btn.textContent = '✦ Polish';
   }
+}
+
+// ── Whisky Hunter — shared fetch helper (CORS proxy for file:// origin) ───────
+
+// Whisky Hunter sends no CORS headers, so fetches from a file:// page are blocked.
+// We try direct first (in case CORS is open), then fall through the same proxy list
+// that the Whiskybase code uses — whichever responds first wins.
+const _WH_PROXIES = [
+  (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  (u) => `https://thingproxy.freeboard.io/fetch/${u}`,
+];
+
+// Returns { text, json } helpers on success, or throws.
+async function _whFetch(targetUrl) {
+  const candidates = [targetUrl, ..._WH_PROXIES.map(fn => fn(targetUrl))];
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (!text) continue;
+      // For JSON endpoints (API), skip if a proxy returns an HTML error page instead of JSON
+      const isHtml = text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html');
+      if (isHtml && !targetUrl.includes('/retail/')) continue;
+      return {
+        text,
+        json() {
+          try { return JSON.parse(text); }
+          catch {
+            // Some proxies wrap JSON in HTML — try to extract
+            const m = text.match(/^\s*(\{[\s\S]*\}|\[[\s\S]*\])\s*$/);
+            if (m) return JSON.parse(m[1]);
+            throw new Error('Not JSON');
+          }
+        }
+      };
+    } catch { /* try next */ }
+  }
+  throw new Error('All fetch attempts failed for ' + targetUrl);
+}
+
+// ── Whisky Hunter secondary market data ──────────────────────────────────────
+
+let _whSlugs = null;  // [{name, slug, country}] — loaded once
+let _whCache = {};    // slug → data array, cached in session
+
+async function whGetSlugs() {
+  if (_whSlugs) return _whSlugs;
+  try {
+    const r = await _whFetch('https://whiskyhunter.net/api/distilleries_info/');
+    _whSlugs = r.json();
+    return _whSlugs;
+  } catch { return null; }
+}
+
+function whMatchSlug(distilleryName, slugs) {
+  if (!distilleryName || !slugs) return null;
+  const q = distilleryName.trim().toLowerCase();
+  // 1. Exact name match (case-insensitive)
+  let m = slugs.find(s => s.name.toLowerCase() === q);
+  if (m) return m.slug;
+  // 2. Slug-style match: lowercase + underscores
+  const asSlug = q.replace(/['']/g, '').replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+  m = slugs.find(s => s.slug === asSlug);
+  if (m) return m.slug;
+  // 3. Starts-with match (for abbreviated names)
+  m = slugs.find(s => s.name.toLowerCase().startsWith(q) || q.startsWith(s.name.toLowerCase()));
+  if (m) return m.slug;
+  return null;
+}
+
+async function loadWhMarketData(distilleryName) {
+  const body = document.getElementById('whMarketBody');
+  if (!body) return;
+
+  try {
+    const slugs = await whGetSlugs();
+    const slug = whMatchSlug(distilleryName, slugs);
+    if (!slug) {
+      body.innerHTML = `<span class="no-value" style="font-size:11px;">No auction data found for "${esc(distilleryName)}"</span>`;
+      return;
+    }
+
+    // Check session cache
+    if (!_whCache[slug]) {
+      const r = await _whFetch(`https://whiskyhunter.net/api/distillery_data/${slug}/`);
+      _whCache[slug] = r.json();
+    }
+
+    const data = _whCache[slug];
+    if (!data || !data.length) {
+      body.innerHTML = `<span class="no-value" style="font-size:11px;">No data</span>`;
+      return;
+    }
+
+    // Most recent 6 months
+    const recent = data.slice(0, 6);
+    const latest = recent[0];
+    const oldest = recent[recent.length - 1];
+    const dtFmt = dt => { const d = new Date(dt+'T12:00:00'); return d.toLocaleDateString('en-GB',{month:'short',year:'numeric'}); };
+
+    // Trend: compare latest mean to 3 months ago
+    const trend3 = recent.length >= 3 ? recent[2].winning_bid_mean : null;
+    const trendPct = trend3 ? ((latest.winning_bid_mean - trend3) / trend3 * 100) : null;
+    const trendHtml = trendPct != null
+      ? `<span style="font-size:10px;font-weight:700;color:${trendPct>=0?'#3a6b3a':'#c0392b'};">${trendPct>=0?'▲':'▼'} ${Math.abs(trendPct).toFixed(0)}% (3mo)</span>`
+      : '';
+
+    const fmt = n => '£' + n.toLocaleString(undefined, {maximumFractionDigits:0});
+
+    body.innerHTML = `
+      <div style="font-size:11px;color:var(--tf-dim);margin-bottom:10px;">
+        All ${esc(latest.name)} lots sold at auction · ${dtFmt(latest.dt)} ${trendHtml}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr>
+          <td style="padding:3px 0;color:var(--tf-dim);width:50%;">Average winning bid</td>
+          <td style="padding:3px 0;font-weight:600;">${fmt(latest.winning_bid_mean)}</td>
+        </tr>
+        <tr>
+          <td style="padding:3px 0;color:var(--tf-dim);">Max winning bid</td>
+          <td style="padding:3px 0;font-weight:600;">${fmt(latest.winning_bid_max)}</td>
+        </tr>
+        <tr>
+          <td style="padding:3px 0;color:var(--tf-dim);">Min winning bid</td>
+          <td style="padding:3px 0;font-weight:600;">${fmt(latest.winning_bid_min)}</td>
+        </tr>
+        <tr>
+          <td style="padding:3px 0;color:var(--tf-dim);">Lots sold</td>
+          <td style="padding:3px 0;font-weight:600;">${latest.lots_count.toLocaleString()}</td>
+        </tr>
+        <tr>
+          <td style="padding:3px 0;color:var(--tf-dim);">Trading volume</td>
+          <td style="padding:3px 0;font-weight:600;">${fmt(latest.trading_volume)}</td>
+        </tr>
+      </table>
+      <div style="margin-top:10px;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:10px;">
+          <tr style="color:var(--tf-dim);">
+            <th style="text-align:left;padding:2px 4px 4px 0;font-weight:600;">Month</th>
+            <th style="text-align:right;padding:2px 0 4px;font-weight:600;">Avg</th>
+            <th style="text-align:right;padding:2px 0 4px;font-weight:600;">Max</th>
+            <th style="text-align:right;padding:2px 4px 4px;font-weight:600;">Lots</th>
+          </tr>
+          ${recent.map(d=>`<tr style="border-top:1px solid var(--border);">
+            <td style="padding:3px 0;color:var(--tf-dim);">${dtFmt(d.dt)}</td>
+            <td style="padding:3px 0;text-align:right;font-weight:600;">${fmt(d.winning_bid_mean)}</td>
+            <td style="padding:3px 0;text-align:right;">${fmt(d.winning_bid_max)}</td>
+            <td style="padding:3px 4px;text-align:right;">${d.lots_count}</td>
+          </tr>`).join('')}
+        </table>
+      </div>
+      <div style="margin-top:8px;font-size:9px;color:var(--tf-dim);">
+        Aggregate data: all ${esc(latest.name)} lots across tracked auctions ·
+        <a href="https://whiskyhunter.net/distillery/${slug}/" target="_blank" style="color:var(--amber);text-decoration:none;">Whisky Hunter ↗</a>
+      </div>`;
+
+  } catch(e) {
+    if (document.getElementById('whMarketBody')) {
+      document.getElementById('whMarketBody').innerHTML =
+        `<span class="no-value" style="font-size:11px;">Could not load market data</span>`;
+    }
+  }
+}
+
+// ── Whisky Hunter retail prices ───────────────────────────────────────────────
+
+let _whRetailCache = {};  // query → [{shop, item, price, url}]
+
+function _whDecodeB64(b64) {
+  try {
+    // Handle URL-safe base64 and add padding
+    const s = b64.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = s + '='.repeat((4 - s.length % 4) % 4);
+    return atob(padded);
+  } catch { return ''; }
+}
+
+async function loadWhRetailData(query) {
+  const body = document.getElementById('whRetailBody');
+  if (!body || !query) return;
+
+  const cacheKey = query.trim().toLowerCase();
+  if (_whRetailCache[cacheKey]) {
+    _renderWhRetail(body, _whRetailCache[cacheKey], query);
+    return;
+  }
+
+  try {
+    const url = `https://whiskyhunter.net/retail/?search=${encodeURIComponent(query)}&exclude=&shop=All`;
+    const r = await _whFetch(url);
+    const html = r.text;
+
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    // Each listing has a Go To Shop button: a.btn.badge.bg-warning.text-dark
+    const goLinks = Array.from(doc.querySelectorAll('a.btn.badge.bg-warning'));
+    const seen = new Set();
+    const results = [];
+
+    for (const go of goLinks) {
+      const tr = go.closest('tr');
+      if (!tr) continue;
+      const tds = Array.from(tr.querySelectorAll(':scope > td'));
+      if (tds.length < 2) continue;
+
+      // Shop name
+      const shopA = tds[0].querySelector('a');
+      const shop = (shopA?.textContent || '').trim();
+
+      // Item name & direct URL
+      const itemA = tds[1].querySelector('a[href*="/whto/"]');
+      const item = (itemA?.textContent || '').trim();
+      const itemHref = itemA?.getAttribute('href') || '';
+      const itemB64m = itemHref.match(/\/whto\/([A-Za-z0-9+/=_-]+)\//);
+      const itemUrl = itemB64m ? _whDecodeB64(itemB64m[1]) : '';
+
+      // Current retail price from the green badge
+      const priceBtn = tr.querySelector('a.bg-success');
+      const price = (priceBtn?.textContent || '').trim();
+
+      // Go To Shop URL (affiliate link decoded)
+      const goHref = go.getAttribute('href') || '';
+      const goB64m = goHref.match(/\/whto\/([A-Za-z0-9+/=_-]+)\//);
+      const goUrl = goB64m ? _whDecodeB64(goB64m[1]) : itemUrl;
+
+      const key = `${shop}|${item}|${price}`;
+      if (seen.has(key) || !item) continue;
+      seen.add(key);
+
+      results.push({ shop, item, price, url: goUrl || itemUrl });
+    }
+
+    // Sort by price ascending (strip £ and parse)
+    results.sort((a, b) => {
+      const pa = parseFloat((a.price || '').replace(/[^0-9.]/g, '')) || Infinity;
+      const pb = parseFloat((b.price || '').replace(/[^0-9.]/g, '')) || Infinity;
+      return pa - pb;
+    });
+
+    _whRetailCache[cacheKey] = results;
+    _renderWhRetail(body, results, query);
+
+  } catch(e) {
+    if (document.getElementById('whRetailBody')) {
+      document.getElementById('whRetailBody').innerHTML =
+        `<span class="no-value" style="font-size:11px;">Could not load retail prices</span>`;
+    }
+  }
+}
+
+function _renderWhRetail(body, results, query) {
+  if (!body) return;
+  const whUrl = `https://whiskyhunter.net/retail/?search=${encodeURIComponent(query)}&exclude=&shop=All`;
+
+  if (!results.length) {
+    body.innerHTML = `<span class="no-value" style="font-size:11px;">No retail listings found</span>
+      <div style="margin-top:6px;">
+        <a href="${whUrl}" target="_blank" style="font-size:10px;color:var(--amber);text-decoration:none;">Search on Whisky Hunter ↗</a>
+      </div>`;
+    return;
+  }
+
+  const rows = results.map(r => {
+    const price = r.price || '—';
+    const itemHtml = r.url
+      ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--fg);text-decoration:none;font-size:11px;font-weight:500;line-height:1.3;">${esc(r.item)}</a>`
+      : `<span style="font-size:11px;font-weight:500;line-height:1.3;">${esc(r.item)}</span>`;
+    return `<tr style="border-top:1px solid var(--border);">
+      <td style="padding:5px 8px 5px 0;vertical-align:top;">
+        ${itemHtml}
+        <div style="margin-top:2px;font-size:9px;color:var(--tf-dim);">${esc(r.shop)}</div>
+      </td>
+      <td style="padding:5px 0;text-align:right;vertical-align:top;white-space:nowrap;font-size:12px;font-weight:700;color:var(--amber);">${esc(price)}</td>
+    </tr>`;
+  }).join('');
+
+  body.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;">
+      ${rows}
+    </table>
+    <div style="margin-top:8px;font-size:9px;color:var(--tf-dim);">
+      Current retail · sorted by price ·
+      <a href="${whUrl}" target="_blank" style="color:var(--amber);text-decoration:none;">All results on Whisky Hunter ↗</a>
+    </div>`;
+}
+
+// ── Chad — conversational tasting partner ─────────────────────────────────────
+
+let _chadHistory = [];  // [{role:'user'|'assistant', content:'...'}]
+let _chadBusy = false;
+let _chadSynthesisTexts = {};  // index → synthesis text (for safe onclick refs)
+
+function chadTastingContext() {
+  // Gather whatever's been filled in on the form so far
+  const name     = (document.getElementById('f-name')?.value || '').trim();
+  const dist     = (document.getElementById('f-distillery')?.value || '').trim();
+  const region   = (document.getElementById('f-region')?.value || '').trim();
+  const age      = (document.getElementById('f-age')?.value || '').trim();
+  const abv      = (document.getElementById('f-abv')?.value || '').trim();
+  const colour   = (document.getElementById('f-colour')?.value || '').trim();
+  const notes    = (document.getElementById('f-notes')?.value || '').trim();
+  const score    = (document.getElementById('f-score')?.value || '').trim();
+
+  const mfEls   = document.querySelectorAll('#mouthfeel .toggle-btn.on');
+  const mf      = Array.from(mfEls).map(e => e.dataset.v).filter(Boolean);
+
+  const peatEls = document.querySelectorAll('#peatGrid .toggle-btn.on');
+  const peat    = Array.from(peatEls).map(e => e.dataset.v).filter(Boolean);
+
+  const fam1    = document.getElementById('f-fam1')?.value || '';
+  const fam2    = document.getElementById('f-fam2')?.value || '';
+  const fam3    = document.getElementById('f-fam3')?.value || '';
+  const fams    = [fam1,fam2,fam3].filter(Boolean)
+    .map(v => FAMILIES.find(f=>f.value===v)?.label || v);
+
+  const scales = {};
+  ['alcoholInt','aromLift','aromInt','axisLH','axisDC','axisSR','axisFP'].forEach(f => {
+    const v = getScale(f); if (v != null) scales[f] = v;
+  });
+  SUBSCALES.forEach(s => {
+    const v = getScale(s.field); if (v != null) scales[s.field] = v;
+  });
+
+  const scaleLabels = {
+    alcoholInt:'Alcohol integration (1=cool/integrated → 7=hot/prickly)',
+    aromLift:'Aromatic lift (1=low → 7=high)',
+    aromInt:'Aromatic integration (1=fragmented → 7=unified)',
+    axisLH:'Weight axis (1=light → 7=heavy)',
+    axisDC:'Texture axis (1=dry → 7=coating)',
+    axisSR:'Structure axis (1=sharp → 7=rounded)',
+    axisFP:'Finish (1=fleeting → 7=persistent)',
+    fermentation:'Fermentation (1=short/simple → 7=long/waxy/deep)',
+    cut:'Cut style (1=narrow/clean → 7=wide/oily)',
+    copper:'Copper contact (1=low/savory → 7=high/clean)',
+    wood:'Wood influence (1=subtle → 7=intense)',
+    oxidation:'Oxidation/age (1=distillate-led → 7=evolved)',
+  };
+
+  let ctx = '';
+  if (name)    ctx += `Whisky: ${name}\n`;
+  if (dist)    ctx += `Distillery: ${dist}\n`;
+  if (region)  ctx += `Region: ${region}\n`;
+  if (age)     ctx += `Age: ${age}\n`;
+  if (abv)     ctx += `ABV: ${abv}${abv.includes('%')?'':'%'}\n`;
+  if (colour)  ctx += `Colour: ${colour}\n`;
+  if (score)   ctx += `Score so far: ${score}/100\n`;
+  if (fams.length) ctx += `Chemical families (ranked): ${fams.join(' > ')}\n`;
+  if (mf.length)   ctx += `Mouthfeel: ${mf.join(', ')}\n`;
+  if (peat.length) ctx += `Peat expression: ${peat.join(', ')}\n`;
+  const scaleEntries = Object.entries(scales);
+  if (scaleEntries.length) {
+    ctx += `\nScale readings (1–7):\n`;
+    scaleEntries.forEach(([k,v]) => { ctx += `  ${scaleLabels[k]||k}: ${v}\n`; });
+  }
+  if (notes)   ctx += `\nNotes so far:\n${notes}\n`;
+  return ctx.trim();
+}
+
+function chadSystemPrompt() {
+  const ctx = chadTastingContext();
+  return `You are a knowledgeable, engaged whisky expert tasting alongside the user and helping them develop their impression through dialogue.
+
+${ctx ? `Current tasting context:\n${ctx}\n\n` : ''}Your role:
+- Respond naturally to whatever the user shares — fragments, half-formed impressions, questions, tangents — all welcome
+- Ask follow-up questions that draw out more specific detail (one at a time, not a barrage)
+- Offer vocabulary, frameworks, or reference points when the user seems stuck
+- Make connections: to process, to distillery character, to other whiskies if relevant
+- Be genuinely engaged, curious, specific — not didactic or patronising
+- Keep responses concise (2–4 sentences usually). Don't recap what the user just said back to them
+- If the user asks you to synthesise, conclude, or wrap up, write a standalone prose paragraph (see synthesis instructions below)
+
+Synthesis (only when explicitly asked, or when user clicks Synthesise):
+Write a single prose paragraph, 3–6 sentences, in first-person present tense. Capture the arc: what opens, how it develops, what the finish reveals, any overarching character. Be non-reductive — don't collapse complexity into a verdict. Do not use bullet points. Do not say "this is a synthesis" or reference the conversation. Just write the note.`;
+}
+
+function openChad() {
+  const key = loadApiKey();
+  if (!key) { showToast('Add your API key in ⚙ Settings first'); openSettings(); return; }
+
+  const name = (document.getElementById('f-name')?.value || '').trim() || 'Unnamed';
+  document.getElementById('chadWhiskyPill').textContent = name;
+
+  // Restore or init session
+  if (_chadHistory.length === 0) {
+    renderChadMessages();
+  } else {
+    renderChadMessages();
+  }
+
+  document.getElementById('chadOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('chadInput')?.focus(), 250);
+}
+
+function closeChad() {
+  document.getElementById('chadOverlay').classList.remove('open');
+}
+
+function chadReset() {
+  _chadHistory = [];
+  _chadBusy = false;
+  document.getElementById('chadSynthBtn').disabled = true;
+  renderChadMessages();
+  document.getElementById('chadInput')?.focus();
+}
+
+function renderChadMessages() {
+  const container = document.getElementById('chadMessages');
+  if (!container) return;
+
+  if (_chadHistory.length === 0) {
+    container.innerHTML = `
+      <div class="chad-empty">
+        <div class="chad-empty-icon">◎</div>
+        <div class="chad-empty-text">What are you getting? Start anywhere — nose, first impressions, anything.</div>
+        <div class="chad-empty-prompts">
+          <button class="chad-prompt-chip" onclick="chadSendText('On the nose I\'m getting…')">On the nose I'm getting…</button>
+          <button class="chad-prompt-chip" onclick="chadSendText('This is an interesting one —')">This is an interesting one —</button>
+          <button class="chad-prompt-chip" onclick="chadSendText('What would you expect from a whisky like this?')">What would you expect from a whisky like this?</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  _chadSynthesisTexts = {};
+  let html = '';
+  _chadHistory.forEach((msg, idx) => {
+    if (msg.role === 'user') {
+      html += `<div class="chad-msg user"><div class="chad-bubble">${esc(msg.content)}</div></div>`;
+    } else if (msg.role === 'assistant') {
+      if (msg._isSynthesis) {
+        _chadSynthesisTexts[idx] = msg.content;
+        html += `<div class="chad-msg ai" style="width:100%;max-width:100%;">
+          <div class="chad-synthesis-card">
+            <div class="chad-synthesis-label">✦ Synthesis</div>
+            <div class="chad-synthesis-text">${esc(msg.content)}</div>
+            <div class="chad-synthesis-actions">
+              <button class="chad-use-btn" onclick="chadUseAsNotes(_chadSynthesisTexts[${idx}])">Use as notes</button>
+              <button class="chad-copy-btn" onclick="navigator.clipboard.writeText(_chadSynthesisTexts[${idx}]).then(()=>showToast('Copied'))">Copy</button>
+            </div>
+          </div>
+        </div>`;
+      } else {
+        html += `<div class="chad-msg ai"><div class="chad-bubble">${esc(msg.content)}</div></div>`;
+      }
+    } else if (msg.role === '_typing') {
+      html += `<div class="chad-msg ai"><div class="chad-bubble typing">…</div></div>`;
+    }
+  });
+
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
+}
+
+function chadInputKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    chadSend();
+  }
+}
+
+function chadInputResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+}
+
+function chadSendText(text) {
+  const input = document.getElementById('chadInput');
+  if (input) { input.value = text; chadInputResize(input); }
+  chadSend();
+}
+
+async function chadSend() {
+  if (_chadBusy) return;
+  const input = document.getElementById('chadInput');
+  const text = (input?.value || '').trim();
+  if (!text) return;
+  input.value = '';
+  if (input) { input.style.height = 'auto'; }
+
+  const key = loadApiKey();
+  if (!key) { showToast('Add your API key in ⚙ Settings first'); return; }
+
+  _chadHistory.push({ role: 'user', content: text });
+  _chadHistory.push({ role: '_typing' });
+  _chadBusy = true;
+  document.getElementById('chadSendBtn').disabled = true;
+  document.getElementById('chadSynthBtn').disabled = true;
+  renderChadMessages();
+
+  try {
+    const messages = _chadHistory
+      .filter(m => m.role !== '_typing')
+      .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        system: chadSystemPrompt(),
+        messages,
+      }),
+    });
+
+    if (!response.ok) throw new Error((await response.json().catch(()=>({}))).error?.message || `API error ${response.status}`);
+    const data = await response.json();
+    const reply = data.content?.[0]?.text?.trim() || '…';
+
+    // Remove typing indicator, add real reply
+    _chadHistory = _chadHistory.filter(m => m.role !== '_typing');
+    _chadHistory.push({ role: 'assistant', content: reply });
+    document.getElementById('chadSynthBtn').disabled = false;
+
+  } catch(e) {
+    _chadHistory = _chadHistory.filter(m => m.role !== '_typing');
+    _chadHistory.push({ role: 'assistant', content: 'Sorry, something went wrong: ' + e.message.substring(0,80) });
+  } finally {
+    _chadBusy = false;
+    document.getElementById('chadSendBtn').disabled = false;
+    renderChadMessages();
+  }
+}
+
+async function chadSynthesize() {
+  if (_chadBusy || _chadHistory.filter(m=>m.role==='user').length === 0) return;
+  const key = loadApiKey();
+  if (!key) { showToast('Add your API key in ⚙ Settings first'); return; }
+
+  _chadHistory.push({ role: '_typing' });
+  _chadBusy = true;
+  document.getElementById('chadSendBtn').disabled = true;
+  document.getElementById('chadSynthBtn').disabled = true;
+  renderChadMessages();
+
+  // Build synthesis prompt — inject the full conversation as context
+  const conversationText = _chadHistory
+    .filter(m => m.role === 'user' || m.role === 'assistant')
+    .map(m => (m.role === 'user' ? 'Taster: ' : 'Expert: ') + m.content)
+    .join('\n\n');
+
+  const tastingCtx = chadTastingContext();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 600,
+        messages: [{
+          role: 'user',
+          content:
+`From this tasting session, write a single prose synthesis paragraph (3–6 sentences). First-person present tense. Capture the arc: what opens, how it develops, what the finish reveals, any overarching character. Be non-reductive — preserve complexity, don't reduce to a verdict. No bullet points. No preamble like "here is a synthesis". Just the note itself.
+
+${tastingCtx ? `Structured tasting data:\n${tastingCtx}\n\n` : ''}Tasting conversation:\n${conversationText}`,
+        }],
+      }),
+    });
+
+    if (!response.ok) throw new Error((await response.json().catch(()=>({}))).error?.message || `API error ${response.status}`);
+    const data = await response.json();
+    const synthesis = data.content?.[0]?.text?.trim() || '';
+
+    _chadHistory = _chadHistory.filter(m => m.role !== '_typing');
+    if (synthesis) {
+      _chadHistory.push({ role: 'assistant', content: synthesis, _isSynthesis: true });
+    }
+    document.getElementById('chadSynthBtn').disabled = false;
+
+  } catch(e) {
+    _chadHistory = _chadHistory.filter(m => m.role !== '_typing');
+    _chadHistory.push({ role: 'assistant', content: 'Synthesis failed: ' + e.message.substring(0,80) });
+  } finally {
+    _chadBusy = false;
+    document.getElementById('chadSendBtn').disabled = false;
+    renderChadMessages();
+  }
+}
+
+function chadUseAsNotes(text) {
+  const ta = document.getElementById('f-notes');
+  if (!ta) { closeChad(); return; }
+  const existing = ta.value.trim();
+  if (existing) {
+    ta.value = existing + '\n\n' + text;
+  } else {
+    ta.value = text;
+  }
+  closeChad();
+  showToast('Synthesis added to notes');
+  // Scroll to notes
+  ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ── Favourites ────────────────────────────────────────────────────────────────
@@ -6710,6 +7475,30 @@ const APP_VERSION  = '2.11.0';
 const DATA_VERSION = 3;
 
 const CHANGELOG = [
+  { version: '2.15.0', label: 'Retail Prices', date: '2026-04-24', items: [
+    'Retail Prices section on every tasting detail — live current retail prices scraped from Whisky Hunter\'s retail page, sorted by price, with direct shop links',
+  ]},
+  { version: '2.14.0', label: 'Secondary Market', date: '2026-04-24', items: [
+    'Secondary Market section on every tasting detail — live auction data from Whisky Hunter\'s public API (no key required)',
+    'Shows avg/max/min winning bid, lots count, and trading volume for the most recent month, plus a 6-month rolling table',
+    '3-month trend arrow (▲/▼ with % change) on the average bid',
+    'Distillery matching handles name variations and abbreviations; falls back gracefully if not found',
+    'Data is aggregate across all lots for that distillery — useful for market context, not individual bottle prices',
+    'Results are cached per session to avoid repeat fetches; links out to the full Whisky Hunter distillery page',
+  ]},
+  { version: '2.13.0', label: 'Prices + Expert Chat rename', date: '2026-04-24', items: [
+    '⊙ Prices button on tasting detail — opens a Whiskystats secondary market search in a new tab, using the bottle name (and age if not already in the name)',
+    'Expert Chat renamed from "Chad" throughout',
+  ]},
+  { version: '2.12.0', label: 'Expert Chat', date: '2026-04-24', items: [
+    '✦ Expert Chat — conversational tasting partner, accessed via the Expert Chat button in the Tasting Notes header',
+    'Talk through the tasting stream-of-consciousness; the expert responds to fragments, asks follow-up questions, and offers vocabulary when you\'re stuck',
+    'Structured tasting data (scales, mouthfeel, chemical families, etc.) is passed as context automatically',
+    'Synthesise button generates a standalone first-person prose paragraph from the conversation using Sonnet; non-reductive by design',
+    'Use as notes pushes the synthesis into the free-text notes field; conversation continues without losing history',
+    'New session resets the conversation without closing the modal',
+    'Conversational turns use claude-haiku-4-5 for speed; synthesis uses claude-sonnet-4-6 for prose quality',
+  ]},
   { version: '2.11.0', label: 'Tasting', date: '2026-04-24', items: [
     'Scale sliders now start unset — grey track and thumb until first touch; data is only recorded once you interact',
     'Amber fill activates on first drag or click, showing center-out direction as before',
@@ -8141,6 +8930,34 @@ renderHistory();
 renderSpinFavs();
 </script>
 
+
+<!-- Chad conversational tasting partner modal -->
+<div id="chadOverlay" class="chad-overlay" onclick="if(event.target===this)closeChad()">
+  <div class="chad-card">
+    <div class="chad-header">
+      <div class="chad-title">
+        <div class="chad-title-dot"></div>
+        Expert Chat
+      </div>
+      <div id="chadWhiskyPill" class="chad-whisky-pill"></div>
+      <button class="chad-close" onclick="closeChad()">×</button>
+    </div>
+    <div class="chad-messages" id="chadMessages"></div>
+    <div class="chad-footer">
+      <div class="chad-footer-actions">
+        <button class="chad-synthesize-btn" id="chadSynthBtn" onclick="chadSynthesize()" disabled>✦ Synthesise</button>
+        <button class="chad-new-btn" onclick="chadReset()">New session</button>
+      </div>
+      <div class="chad-input-row">
+        <textarea class="chad-textarea" id="chadInput" rows="1"
+          placeholder="What are you getting on the nose…"
+          onkeydown="chadInputKeydown(event)"
+          oninput="chadInputResize(this)"></textarea>
+        <button class="chad-send-btn" id="chadSendBtn" onclick="chadSend()">↑</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="deleteModal" class="modal-overlay" onclick="if(event.target===this)closeDeleteModal()">
   <div class="modal-card" style="max-width:340px;">
