@@ -793,7 +793,7 @@ select.field-input {
 }
 .rec-name { font-size: 15px; font-weight: 700; color: var(--tf); }
 .rec-distillery { font-size: 11px; color: var(--tf-dim); margin-top: 2px; }
-.rec-match { flex-shrink: 0; text-align: right; }
+.rec-match { flex-shrink: 0; text-align: center; }
 .rec-match-score { font-size: 22px; font-weight: 700; color: var(--amber); line-height: 1; }
 .rec-match-label {
   font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
@@ -1407,7 +1407,7 @@ select.field-input {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.15.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.19.0</div>
 
 <header class="app-header">
   <div>
@@ -2146,8 +2146,8 @@ function showDetail(id) {
   renderDetail(id);
   showView('detail');
   const t = dbGet(id);
-  if (t?.distillery) loadWhMarketData(t.distillery);
-  if (t?.name || t?.distillery) {
+  if (t?.distillery && t?.bottlingType !== 'cask') loadWhMarketData(t.distillery);
+  if ((t?.name || t?.distillery) && t?.bottlingType !== 'cask') {
     const q = (t.name || '').trim() || [t.distillery, t.age].filter(Boolean).join(' ');
     loadWhRetailData(q);
   }
@@ -3040,7 +3040,7 @@ function renderDetail(id) {
         ${t.notes?`<div class="detail-notes">${esc(t.notes)}</div>`:`<span class="no-value">No notes recorded</span>`}
       </div>
     </div>
-    ${t.distillery ? `<div class="detail-section" id="whMarketSection">
+    ${(t.distillery && t.bottlingType !== 'cask') ? `<div class="detail-section" id="whMarketSection">
       <div class="detail-sec-head" style="display:flex;align-items:center;justify-content:space-between;">
         <span class="detail-sec-title">Secondary Market</span>
         <span style="font-size:9px;color:var(--tf-dim);font-weight:400;">via Whisky Hunter · all GBP</span>
@@ -3049,7 +3049,7 @@ function renderDetail(id) {
         <span class="no-value" style="font-size:11px;">Loading…</span>
       </div>
     </div>` : ''}
-    ${(t.name || t.distillery) ? `<div class="detail-section" id="whRetailSection">
+    ${((t.name || t.distillery) && t.bottlingType !== 'cask') ? `<div class="detail-section" id="whRetailSection">
       <div class="detail-sec-head" style="display:flex;align-items:center;justify-content:space-between;">
         <span class="detail-sec-title">Retail Prices</span>
         <span style="font-size:9px;color:var(--tf-dim);font-weight:400;">via Whisky Hunter · GBP</span>
@@ -3616,78 +3616,105 @@ let _whRetailCache = {};  // query → [{shop, item, price, url}]
 
 function _whDecodeB64(b64) {
   try {
-    // Handle URL-safe base64 and add padding
     const s = b64.replace(/-/g, '+').replace(/_/g, '/');
     const padded = s + '='.repeat((4 - s.length % 4) % 4);
     return atob(padded);
   } catch { return ''; }
 }
 
+// Unwrap affiliate redirect URLs to the actual product page.
+// Returns null for affiliate networks we can't cleanly decode (caller should skip).
+function _whDirectUrl(raw) {
+  if (!raw) return null;
+  // Reject garbled / non-ASCII (Affiliate Future encodes to binary)
+  if (/[^\x20-\x7E]/.test(raw)) return null;
+  try {
+    const u = new URL(raw);
+    const h = u.hostname;
+    // AWIN (The Whisky Exchange, Abbey Whisky, …) — destination in ued=
+    if (h.includes('awin1.com')) {
+      const dest = u.searchParams.get('ued');
+      return dest ? dest : null;
+    }
+    // Partnerize / ADT253 (Master of Malt) — destination in url=
+    if (h.includes('adt253.net') || h.includes('partnerize.com')) {
+      const dest = u.searchParams.get('url');
+      return dest ? dest : null;
+    }
+    // Tracking subdomains (to.whiskyshop.com, to.lochfynewhiskies.com, …) — skip
+    if (/^to\./.test(h)) return null;
+    // PaidOnResults, Affiliate Future — skip
+    if (h.includes('paidonresults.net') || h.includes('affiliatefuture.com')) return null;
+    // GoAffPro, other known wrappers — skip
+    if (h.includes('goaffpro.com') || h.includes('shareasale.com')) return null;
+    // Direct retailer URL — strip Whisky Hunter referral param and return
+    u.searchParams.delete('ref');
+    return u.toString();
+  } catch { return null; }
+}
+
+// Core: fetch + parse retail page, return sorted results array (cached).
+async function _fetchWhRetailResults(query) {
+  if (!query) return [];
+  const cacheKey = query.trim().toLowerCase();
+  if (_whRetailCache[cacheKey]) return _whRetailCache[cacheKey];
+
+  const url = `https://whiskyhunter.net/retail/?search=${encodeURIComponent(query)}&exclude=&shop=All`;
+  const r = await _whFetch(url);
+  const html = r.text;
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const goLinks = Array.from(doc.querySelectorAll('a.btn.badge.bg-warning'));
+  const seen = new Set();
+  const results = [];
+
+  for (const go of goLinks) {
+    const tr = go.closest('tr');
+    if (!tr) continue;
+    const tds = Array.from(tr.querySelectorAll(':scope > td'));
+    if (tds.length < 2) continue;
+
+    const shopA = tds[0].querySelector('a');
+    const shop = (shopA?.textContent || '').trim();
+
+    const itemA = tds[1].querySelector('a[href*="/whto/"]');
+    const item = (itemA?.textContent || '').trim();
+
+    const priceBtn = tr.querySelector('a.bg-success');
+    const rawPrice = (priceBtn?.textContent || '').trim();
+    const priceNum = parseFloat(rawPrice.replace(/[^0-9.]/g, ''));
+    const price = priceNum ? `£${Math.round(priceNum).toLocaleString()}` : rawPrice;
+
+    // Decode Go To Shop URL and unwrap affiliate wrapper — skip if can't get a clean direct link
+    const goHref = go.getAttribute('href') || '';
+    const goB64m = goHref.match(/\/whto\/([A-Za-z0-9+/=_-]+)\//);
+    const goRaw = goB64m ? _whDecodeB64(goB64m[1]) : '';
+    const directUrl = _whDirectUrl(goRaw);
+    if (!directUrl || !item) continue;
+
+    const key = `${shop}|${item}|${price}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    results.push({ shop, item, price, url: directUrl });
+  }
+
+  results.sort((a, b) => {
+    const pa = parseFloat((a.price || '').replace(/[^0-9.]/g, '')) || Infinity;
+    const pb = parseFloat((b.price || '').replace(/[^0-9.]/g, '')) || Infinity;
+    return pa - pb;
+  });
+
+  _whRetailCache[cacheKey] = results;
+  return results;
+}
+
+// Detail-view wrapper: fetch results then render into #whRetailBody.
 async function loadWhRetailData(query) {
   const body = document.getElementById('whRetailBody');
   if (!body || !query) return;
-
-  const cacheKey = query.trim().toLowerCase();
-  if (_whRetailCache[cacheKey]) {
-    _renderWhRetail(body, _whRetailCache[cacheKey], query);
-    return;
-  }
-
   try {
-    const url = `https://whiskyhunter.net/retail/?search=${encodeURIComponent(query)}&exclude=&shop=All`;
-    const r = await _whFetch(url);
-    const html = r.text;
-
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-
-    // Each listing has a Go To Shop button: a.btn.badge.bg-warning.text-dark
-    const goLinks = Array.from(doc.querySelectorAll('a.btn.badge.bg-warning'));
-    const seen = new Set();
-    const results = [];
-
-    for (const go of goLinks) {
-      const tr = go.closest('tr');
-      if (!tr) continue;
-      const tds = Array.from(tr.querySelectorAll(':scope > td'));
-      if (tds.length < 2) continue;
-
-      // Shop name
-      const shopA = tds[0].querySelector('a');
-      const shop = (shopA?.textContent || '').trim();
-
-      // Item name & direct URL
-      const itemA = tds[1].querySelector('a[href*="/whto/"]');
-      const item = (itemA?.textContent || '').trim();
-      const itemHref = itemA?.getAttribute('href') || '';
-      const itemB64m = itemHref.match(/\/whto\/([A-Za-z0-9+/=_-]+)\//);
-      const itemUrl = itemB64m ? _whDecodeB64(itemB64m[1]) : '';
-
-      // Current retail price from the green badge
-      const priceBtn = tr.querySelector('a.bg-success');
-      const price = (priceBtn?.textContent || '').trim();
-
-      // Go To Shop URL (affiliate link decoded)
-      const goHref = go.getAttribute('href') || '';
-      const goB64m = goHref.match(/\/whto\/([A-Za-z0-9+/=_-]+)\//);
-      const goUrl = goB64m ? _whDecodeB64(goB64m[1]) : itemUrl;
-
-      const key = `${shop}|${item}|${price}`;
-      if (seen.has(key) || !item) continue;
-      seen.add(key);
-
-      results.push({ shop, item, price, url: goUrl || itemUrl });
-    }
-
-    // Sort by price ascending (strip £ and parse)
-    results.sort((a, b) => {
-      const pa = parseFloat((a.price || '').replace(/[^0-9.]/g, '')) || Infinity;
-      const pb = parseFloat((b.price || '').replace(/[^0-9.]/g, '')) || Infinity;
-      return pa - pb;
-    });
-
-    _whRetailCache[cacheKey] = results;
+    const results = await _fetchWhRetailResults(query);
     _renderWhRetail(body, results, query);
-
   } catch(e) {
     if (document.getElementById('whRetailBody')) {
       document.getElementById('whRetailBody').innerHTML =
@@ -4098,25 +4125,54 @@ function renderFavourites() {
     <div class="section" style="margin-bottom:16px;">
       <div class="section-head"><span class="section-title">Saved</span></div>
       <div style="padding:0;">
-        ${favs.map(f => {
-          const q = encodeURIComponent(f.searchQuery||f.name);
-          const buyUrl = f.tweUrl
-            ? `https://www.thewhiskyexchange.com${f.tweUrl}`
-            : `https://www.thewhiskyexchange.com/search?q=${q}`;
+        ${favs.map((f, fi) => {
+          const rawQ = (f.searchQuery || f.name).replace(/\(?cask\s*[#№]?\s*\d+\)?/gi, '').replace(/\s{2,}/g, ' ').trim();
+          const whUrl = `https://whiskyhunter.net/retail/?search=${encodeURIComponent(rawQ)}&exclude=&shop=All`;
           const priceHtml = formatRecPrice(f);
           return `<div class="saved-rec-row">
             <div style="min-width:0;">
               <div class="saved-rec-name">${esc(f.name)}</div>
-              <div class="saved-rec-meta">${[f.distillery, f.region].filter(Boolean).map(esc).join(' · ')}${priceHtml ? ` · <span style="color:var(--tf)">${priceHtml}</span>` : ''}</div>
+              <div class="saved-rec-meta" id="fav-price-${fi}">${[f.distillery, f.region].filter(Boolean).map(esc).join(' · ')}${priceHtml ? ` · <span style="color:var(--tf)">${priceHtml}</span>` : ''}</div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
-              <a class="btn-buy" href="${buyUrl}" target="_blank" rel="noopener">Buy on TWE ↗</a>
+              <a class="btn-buy" id="fav-buy-${fi}" href="${whUrl}" target="_blank" rel="noopener" title="Loading best price…">Find Price ↗</a>
               <button class="rec-fav-btn saved" data-fav-id="${esc(f.id)}" onclick="removeFavById(this)" title="Remove">♥</button>
             </div>
           </div>`;
         }).join('')}
       </div>
     </div>`;
+
+  // Async: load live retail price for each saved item
+  loadRetailForFavourites(favs);
+}
+
+async function loadRetailForFavourites(favs) {
+  await Promise.all(favs.map(async (f, fi) => {
+    try {
+      const rawQ = (f.searchQuery || f.name).replace(/\(?cask\s*[#№]?\s*\d+\)?/gi, '').replace(/\s{2,}/g, ' ').trim();
+      const results = await _fetchWhRetailResults(rawQ);
+      const buyBtn = document.getElementById(`fav-buy-${fi}`);
+      if (!buyBtn) return;
+
+      if (!results.length) {
+        buyBtn.href = `https://www.wine-searcher.com/find/${encodeURIComponent(rawQ)}`;
+        buyBtn.textContent = 'Find Price ↗';
+        return;
+      }
+
+      const best = results[0];
+      buyBtn.href = best.url || `https://www.wine-searcher.com/find/${encodeURIComponent(rawQ)}`;
+      buyBtn.title = `${best.item} · ${best.shop}`;
+      buyBtn.textContent = `${best.price} · ${best.shop} ↗`;
+
+      const priceEl = document.getElementById(`fav-price-${fi}`);
+      if (priceEl) {
+        const meta = [f.distillery, f.region].filter(Boolean).map(esc).join(' · ');
+        priceEl.innerHTML = `${meta}${meta ? ' · ' : ''}<span style="color:var(--amber);font-weight:600;">${esc(best.price)}</span>`;
+      }
+    } catch { /* leave defaults */ }
+  }));
 }
 
 // ── Distillery typeahead ──────────────────────────────────────────────────────
@@ -5529,12 +5585,8 @@ function renderRecCards() {
   if (!items.length) { el.innerHTML = ''; return; }
   el.innerHTML = items.map(({r, i}) => {
     const rawQ = (r.searchQuery || r.name).replace(/\(?cask\s*[#№]?\s*\d+\)?/gi, '').replace(/\s{2,}/g, ' ').trim();
-    const q = encodeURIComponent(rawQ);
-    const buyUrl = r.tweUrl
-      ? `https://www.thewhiskyexchange.com${r.tweUrl}`
-      : `https://www.thewhiskyexchange.com/search?q=${q}`;
+    const wsUrl = `https://www.wine-searcher.com/find/${encodeURIComponent(rawQ)}`;
     const faved = isFavourite(r.name);
-    const priceHtml = formatRecPrice(r);
     return `
       <div class="rec-card">
         <div class="rec-card-head">
@@ -5542,24 +5594,52 @@ function renderRecCards() {
             <div class="rec-name">${esc(r.name)}</div>
             ${r.distillery ? `<div class="rec-distillery"><span class="dist-link" data-d="${esc(r.distillery)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(r.distillery)}</span>${(r.region||r.country)?' · '+[r.region,r.country].filter(Boolean).map(esc).join(' · '):''}</div>` : (r.region||r.country)?`<div class="rec-distillery">${[r.region,r.country].filter(Boolean).map(esc).join(' · ')}</div>`:''}
           </div>
-          <div class="rec-match">
-            <div class="rec-match-score">${Math.round(r.matchScore)}<span style="font-size:12px;color:var(--tf-dim);font-weight:400;">%</span></div>
-            <div class="rec-match-label">Match</div>
+          <div style="display:flex;flex-direction:row;align-items:center;gap:8px;flex-shrink:0;">
+            <div class="rec-match">
+              <div class="rec-match-score" style="color:var(--amber);">${Math.round(r.matchScore)}<span style="font-size:12px;font-weight:700;color:var(--amber);">%</span></div>
+              <div class="rec-match-label">Match</div>
+            </div>
+            <button class="rec-fav-btn${faved?' saved':''}" data-idx="${i}" onclick="toggleFavourite(this,${i})" title="${faved?'Remove from saved':'Save'}">${faved?'♥':'♡'}</button>
           </div>
         </div>
         <div class="rec-body">
           <div class="rec-reasoning">${esc(r.reasoning)}</div>
           <div class="rec-verify">${verifyBadge(r._verify)}</div>
           <div class="rec-footer">
-            <div class="rec-price">${priceHtml}</div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <a class="btn-buy" href="${buyUrl}" target="_blank" rel="noopener noreferrer">Buy on TWE ↗</a>
-              <button class="rec-fav-btn${faved?' saved':''}" data-idx="${i}" onclick="toggleFavourite(this,${i})" title="${faved?'Remove from saved':'Save'}">${faved?'♥':'♡'}</button>
+            <div style="display:flex;gap:8px;align-items:center;margin-left:auto;">
+              <a class="btn-buy" id="rec-buy-${i}" href="${wsUrl}" target="_blank" rel="noopener noreferrer" title="Loading best price…">Find Price ↗</a>
             </div>
           </div>
         </div>
       </div>`;
   }).join('');
+
+  // Async: load live retail price for each card
+  loadRetailForRecCards();
+}
+
+async function loadRetailForRecCards() {
+  const recs = _lastRecs || [];
+  await Promise.all(recs.map(async (r, i) => {
+    try {
+      const rawQ = (r.searchQuery || r.name).replace(/\(?cask\s*[#№]?\s*\d+\)?/gi, '').replace(/\s{2,}/g, ' ').trim();
+      const results = await _fetchWhRetailResults(rawQ);
+      const buyBtn = document.getElementById(`rec-buy-${i}`);
+      if (!buyBtn) return;
+
+      if (!results.length) {
+        // No Whisky Hunter results — fall back to Wine-Searcher
+        buyBtn.href = `https://www.wine-searcher.com/find/${encodeURIComponent(rawQ)}`;
+        buyBtn.textContent = 'Find Price ↗';
+        return;
+      }
+
+      const best = results[0];
+      buyBtn.href = best.url || `https://www.wine-searcher.com/find/${encodeURIComponent(rawQ)}`;
+      buyBtn.title = `${best.item} · ${best.shop}`;
+      buyBtn.textContent = `${best.price} · ${best.shop} ↗`;
+    } catch { /* leave Wine-Searcher default */ }
+  }));
 }
 
 function verifyBadge(v) {
@@ -6621,13 +6701,14 @@ function renderFitResult(r) {
         <div class="rec-card-head">
           <div style="min-width:0;"><div class="rec-name">${esc(a.name)}</div>
           ${a.distillery?`<div class="rec-distillery"><span class="dist-link" data-d="${esc(a.distillery)}" onclick="event.stopPropagation();showDistillery(this.dataset.d)">${esc(a.distillery)}</span>${(a.region||a.country)?' · '+[a.region,a.country].filter(Boolean).map(esc).join(' · '):''}</div>`:(a.region||a.country)?`<div class="rec-distillery">${[a.region,a.country].filter(Boolean).map(esc).join(' · ')}</div>`:''}</div>
-          <div class="rec-match"><div class="rec-match-score">${isFinite(a.matchScore) ? Math.round(a.matchScore) : '—'}<span style="font-size:12px;color:var(--tf-dim);font-weight:400;">%</span></div><div class="rec-match-label">Match</div></div>
+          <div class="rec-match"><div class="rec-match-score">${isFinite(a.matchScore) ? Math.round(a.matchScore) : '—'}<span style="font-size:12px;font-weight:700;color:var(--amber);">%</span></div><div class="rec-match-label">Match</div></div>
         </div>
         <div class="rec-body">
           <div class="rec-reasoning">${esc(a.reasoning)}</div>
           <div class="rec-footer">
-            <div class="rec-price">${priceHtml}</div>
-            <a class="btn-buy" href="${buyUrl}" target="_blank" rel="noopener">Buy on TWE ↗</a>
+            <div style="margin-left:auto;">
+              <a class="btn-buy" href="${buyUrl}" target="_blank" rel="noopener">Find Price ↗</a>
+            </div>
           </div>
         </div>
       </div>`;
@@ -7475,6 +7556,27 @@ const APP_VERSION  = '2.11.0';
 const DATA_VERSION = 3;
 
 const CHANGELOG = [
+  { version: '2.19.0', label: 'Card polish & cask awareness', date: '2026-04-24', items: [
+    'Heart and match % now sit side-by-side in the card header — heart no longer pushes score down',
+    'Match % is bold amber for better visibility',
+    'Cask sample tastings suppress Retail Prices and Secondary Market sections — irrelevant data hidden automatically',
+  ]},
+  { version: '2.18.0', label: 'Direct retail links', date: '2026-04-24', items: [
+    'Retail links now go directly to the product page — AWIN (TWE, Abbey Whisky) and Partnerize (Master of Malt) wrappers are decoded',
+    'Affiliate networks we can\'t decode cleanly (PaidOnResults, Affiliate Future, tracking subdomains) are filtered out entirely',
+    'Whisky Hunter referral params stripped from direct retailer URLs',
+    'No retail results → Find Price button falls back to Wine-Searcher',
+  ]},
+  { version: '2.17.0', label: 'Discover pricing polish', date: '2026-04-24', items: [
+    'Prices shown as whole numbers (£135, not £134.95)',
+    'Removed estimated price from left side of Discover cards — cleaner layout',
+    'No Whisky Hunter results? Buy button falls back to Wine-Searcher instead',
+  ]},
+  { version: '2.16.0', label: 'Discover live pricing', date: '2026-04-24', items: [
+    'Discover cards now load live retail prices from Whisky Hunter — Buy button updates to cheapest available shop with direct link',
+    'Saved items also get live best-price + shop link',
+    'Shared retail fetch cache: results load once per session and are reused across Discover and detail views',
+  ]},
   { version: '2.15.0', label: 'Retail Prices', date: '2026-04-24', items: [
     'Retail Prices section on every tasting detail — live current retail prices scraped from Whisky Hunter\'s retail page, sorted by price, with direct shop links',
   ]},
