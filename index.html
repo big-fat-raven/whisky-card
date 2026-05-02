@@ -1313,7 +1313,7 @@ select.field-input {
 
 .mobile-nav-drawer {
   display: none; position: fixed; top: 0; left: 0; right: 0;
-  background: var(--dark); z-index: 199; flex-direction: column;
+  background: var(--dark); z-index: 10000; flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom,8px); box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   border-bottom: 3px solid #F07020;
   max-height: 100vh; overflow-y: auto;
@@ -1548,7 +1548,8 @@ body {
 
 @media (max-width: 600px) {
   .map-body-row { flex-direction: column; }
-  #mapContainer { height: 55vw; min-height: 260px; max-height: 420px; }
+  #mapWrapper { width: 100%; }
+  #mapContainer { width: 100%; height: 55vw; min-height: 260px; max-height: 420px; }
   .map-panel {
     width: 100%; height: 220px; min-height: 0; max-height: 220px;
   }
@@ -1558,7 +1559,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.39.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.40.0</div>
 
 <header class="app-header">
   <div>
@@ -1757,7 +1758,6 @@ body {
     <div class="history-toolbar" style="margin-bottom:12px;">
       <div>
         <div class="history-title">MAP</div>
-        <div class="history-count" id="mapCount"></div>
       </div>
     </div>
     <div class="map-country-tabs" id="mapCountryTabs">
@@ -1766,6 +1766,7 @@ body {
       <button class="fd-tag" data-country="japan" onclick="switchMapCountry(this.dataset.country)">Japan</button>
       <button class="fd-tag" data-country="usa" onclick="switchMapCountry(this.dataset.country)">USA</button>
     </div>
+    <div class="history-count" id="mapCount" style="margin:6px 0 8px;"></div>
     <div class="map-body-row">
       <div style="flex:1;min-width:0;position:relative;" id="mapWrapper">
         <div id="mapContainer" style="width:100%;"></div>
@@ -3266,7 +3267,7 @@ function renderDetail(id) {
     ${((t.name || t.distillery) && t.bottlingType !== 'cask') ? `<div class="detail-section" id="whRetailSection">
       <div class="detail-sec-head" style="display:flex;align-items:center;justify-content:space-between;">
         <span class="detail-sec-title">Retail Prices</span>
-        <span style="font-size:9px;color:var(--tf-dim);font-weight:400;">via Whisky Hunter · GBP</span>
+        <span style="font-size:9px;color:var(--tf-dim);font-weight:400;">via The Whiskey Wash · GBP</span>
       </div>
       <div class="detail-body" id="whRetailBody">
         <span class="no-value" style="font-size:11px;">Loading…</span>
@@ -9832,7 +9833,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.39.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.40.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
