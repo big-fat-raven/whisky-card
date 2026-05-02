@@ -1314,8 +1314,9 @@ select.field-input {
 .mobile-nav-drawer {
   display: none; position: fixed; top: 0; left: 0; right: 0;
   background: var(--dark); z-index: 199; flex-direction: column;
-  padding-bottom: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  padding-bottom: env(safe-area-inset-bottom,8px); box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   border-bottom: 3px solid #F07020;
+  max-height: 100vh; overflow-y: auto;
 }
 .mobile-nav-drawer.open { display: flex; }
 .mobile-nav-spacer { flex-shrink: 0; }
@@ -1556,7 +1557,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.34.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.35.0</div>
 
 <header class="app-header">
   <div>
@@ -1594,7 +1595,7 @@ body {
   <button class="mobile-nav-tab" id="mnav-pour" onclick="switchTab('pour');closeMobileNav()">Pour</button>
   <button class="mobile-nav-tab" id="mnav-library" onclick="switchTab('library');closeMobileNav()">Library</button>
   <div style="height:1px;background:var(--rule-b);margin:8px 20px;"></div>
-  <button class="mobile-nav-tab" onclick="closeMobileNav();openSettings()" style="color:var(--tb-dim);">Settings ⚙</button>
+  <button class="mobile-nav-tab" onclick="closeMobileNav();setTimeout(openSettings,50)" style="color:var(--tb-dim);">⚙ Settings</button>
 </div>
 
 <!-- ══ Saved side drawer ══ -->
@@ -5479,7 +5480,7 @@ function switchTab(tab) {
   document.getElementById('tab-library').classList.toggle('active', tab === 'library');
   if (tab === 'tastings')       { renderHistory(); showView('history'); }
   else if (tab === 'discover')  { showDiscoverView(); showView('discover'); }
-  else if (tab === 'map')       { showMapView(); showView('map'); }
+  else if (tab === 'map')       { showView('map'); setTimeout(showMapView, 0); }
   else if (tab === 'pour')      { showView('pour'); updateBioDayPill(); window.scrollTo(0,0); }
   else if (tab === 'library')    { showLibraryView(); showView('library'); }
   else                          { showView('fitcheck'); window.scrollTo(0,0); }
@@ -9825,7 +9826,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.34.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.35.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
