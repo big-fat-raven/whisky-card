@@ -1296,6 +1296,7 @@ select.field-input {
 }
 
 /* ── Mobile ── */
+.header-tabs.force-hide { display: none !important; }
 /* ── Hamburger nav (mobile) ── */
 .hamburger-btn {
   display: none; background: none; border: none; cursor: pointer;
@@ -1483,7 +1484,7 @@ select.field-input {
 .compare-cell.diff { background: rgba(229,91,32,0.07); font-weight: 600; }
 
 /* ── Leaflet map overrides ──────────────────────────────────── */
-#mapContainer { height: calc(100vh - 268px); min-height: 420px; max-height: 780px; border-radius: 6px; overflow: hidden; }
+#mapContainer { height: calc(100vh - 268px); min-height: 300px; max-height: 780px; border-radius: 6px; overflow: hidden; }
 .leaflet-container { background: #E5E2DC; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
 .leaflet-control-zoom a { color: var(--dark); }
 .leaflet-control-zoom a:hover { color: var(--amber); }
@@ -1545,8 +1546,9 @@ body {
 
 @media (max-width: 600px) {
   .map-body-row { flex-direction: column; }
+  #mapContainer { height: 55vw; min-height: 260px; max-height: 420px; }
   .map-panel {
-    width: 100%; height: 260px; min-height: 0; max-height: 260px;
+    width: 100%; height: 220px; min-height: 0; max-height: 220px;
   }
 }
 
@@ -1554,7 +1556,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.33.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.34.0</div>
 
 <header class="app-header">
   <div>
@@ -1591,6 +1593,8 @@ body {
   <button class="mobile-nav-tab" id="mnav-fitcheck" onclick="switchTab('fitcheck');closeMobileNav()">Spin</button>
   <button class="mobile-nav-tab" id="mnav-pour" onclick="switchTab('pour');closeMobileNav()">Pour</button>
   <button class="mobile-nav-tab" id="mnav-library" onclick="switchTab('library');closeMobileNav()">Library</button>
+  <div style="height:1px;background:var(--rule-b);margin:8px 20px;"></div>
+  <button class="mobile-nav-tab" onclick="closeMobileNav();openSettings()" style="color:var(--tb-dim);">Settings ⚙</button>
 </div>
 
 <!-- ══ Saved side drawer ══ -->
@@ -2289,7 +2293,11 @@ function showView(name) {
   if (_dictating) stopDictation();
   // Header tabs: visible on main tab views
   const onTab = (name === 'history' || name === 'discover' || name === 'fitcheck' || name === 'map' || name === 'pour' || name === 'library' || name === 'saved');
-  document.getElementById('headerTabs').style.display = onTab ? 'flex' : 'none';
+  document.getElementById('headerTabs').classList.toggle('force-hide', !onTab);
+  const hbBtn = document.getElementById('hamburgerBtn');
+  const hbLabel = document.getElementById('mobileNavLabel');
+  if (hbBtn) hbBtn.style.display = onTab ? '' : 'none';
+  if (hbLabel) hbLabel.style.display = onTab ? '' : 'none';
 }
 function showHistory() {
   renderHistory();
@@ -7889,7 +7897,8 @@ async function renderMap(country) {
   }
 
   _leafletMap.setView(config.center, config.zoom, { animate: false });
-  setTimeout(() => { if (_leafletMap) _leafletMap.invalidateSize(); }, 50);
+  setTimeout(() => { if (_leafletMap) _leafletMap.invalidateSize(); }, 100);
+  setTimeout(() => { if (_leafletMap) _leafletMap.invalidateSize(); }, 400);
 
   // Clear old markers + region labels
   if (_leafletMarkerLayer) _leafletMarkerLayer.remove();
@@ -9816,7 +9825,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.33.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.34.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
