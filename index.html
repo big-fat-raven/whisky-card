@@ -1296,6 +1296,49 @@ select.field-input {
 }
 
 /* ── Mobile ── */
+/* ── Hamburger nav (mobile) ── */
+.hamburger-btn {
+  display: none; background: none; border: none; cursor: pointer;
+  color: var(--tb); padding: 6px 8px; border-radius: 4px;
+  flex-direction: column; gap: 4px; align-items: center; justify-content: center;
+}
+.hamburger-btn span {
+  display: block; width: 20px; height: 2px; background: currentColor;
+  border-radius: 1px; transition: all 0.2s;
+}
+.hamburger-btn.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger-btn.open span:nth-child(2) { opacity: 0; }
+.hamburger-btn.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.mobile-nav-drawer {
+  display: none; position: fixed; top: 0; left: 0; right: 0;
+  background: var(--dark); z-index: 199; flex-direction: column;
+  padding-bottom: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  border-bottom: 3px solid #F07020;
+}
+.mobile-nav-drawer.open { display: flex; }
+.mobile-nav-spacer { flex-shrink: 0; }
+.mobile-nav-tab {
+  padding: 14px 20px; border: none; background: none; cursor: pointer;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--tb-dim); font-family: inherit; text-align: left;
+  display: flex; align-items: center; gap: 10px; transition: background 0.1s;
+}
+.mobile-nav-tab:hover { background: rgba(255,255,255,0.05); color: var(--tb); }
+.mobile-nav-tab.active { color: var(--tb); }
+.mobile-nav-tab.active::before {
+  content: ''; display: block; width: 3px; height: 16px;
+  background: #F07020; border-radius: 2px; margin-right: 2px;
+}
+.mobile-nav-tab:not(.active)::before {
+  content: ''; display: block; width: 3px; height: 16px;
+  margin-right: 2px;
+}
+.mobile-nav-active-label {
+  display: none; font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--tb-dim); text-transform: uppercase; margin-left: 6px;
+}
+
 @media (max-width: 480px) {
   .app-header { padding: 10px 14px; }
   .header-brand { font-size: 16px; letter-spacing: 0.2em; }
@@ -1499,48 +1542,6 @@ body {
   height: calc(62px + env(safe-area-inset-top));
 }
 
-/* ── Hamburger nav (mobile) ── */
-.hamburger-btn {
-  display: none; background: none; border: none; cursor: pointer;
-  color: var(--tb); padding: 6px 8px; border-radius: 4px;
-  flex-direction: column; gap: 4px; align-items: center; justify-content: center;
-}
-.hamburger-btn span {
-  display: block; width: 20px; height: 2px; background: currentColor;
-  border-radius: 1px; transition: all 0.2s;
-}
-.hamburger-btn.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-.hamburger-btn.open span:nth-child(2) { opacity: 0; }
-.hamburger-btn.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-
-.mobile-nav-drawer {
-  display: none; position: fixed; top: 0; left: 0; right: 0;
-  background: var(--dark); z-index: 199; flex-direction: column;
-  padding-bottom: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  border-bottom: 3px solid #F07020;
-}
-.mobile-nav-drawer.open { display: flex; }
-.mobile-nav-spacer { flex-shrink: 0; }
-.mobile-nav-tab {
-  padding: 14px 20px; border: none; background: none; cursor: pointer;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--tb-dim); font-family: inherit; text-align: left;
-  display: flex; align-items: center; gap: 10px; transition: background 0.1s;
-}
-.mobile-nav-tab:hover { background: rgba(255,255,255,0.05); color: var(--tb); }
-.mobile-nav-tab.active { color: var(--tb); }
-.mobile-nav-tab.active::before {
-  content: ''; display: block; width: 3px; height: 16px;
-  background: #F07020; border-radius: 2px; margin-right: 2px;
-}
-.mobile-nav-tab:not(.active)::before {
-  content: ''; display: block; width: 3px; height: 16px;
-  margin-right: 2px;
-}
-.mobile-nav-active-label {
-  display: none; font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
-  color: var(--tb-dim); text-transform: uppercase; margin-left: 6px;
-}
 
 @media (max-width: 600px) {
   .map-body-row { flex-direction: column; }
@@ -1553,7 +1554,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.32.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.33.0</div>
 
 <header class="app-header">
   <div>
@@ -9815,7 +9816,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.32.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.33.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
