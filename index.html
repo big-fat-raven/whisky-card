@@ -1561,7 +1561,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.40.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.41.0</div>
 
 <header class="app-header">
   <div>
@@ -8149,6 +8149,26 @@ const APP_VERSION  = '2.11.0';
 const DATA_VERSION = 3;
 
 const CHANGELOG = [
+  { version: '2.41.0', label: 'Map popup + nav drawer z-index fixes', date: '2026-05-02', items: [
+    'Distillery popup now renders above Leaflet zoom controls and attribution — Leaflet popup pane raised to z-index 850 (above controls at 800)',
+    'Mobile nav drawer now renders above the map on all pages — z-index raised to 10000 so Leaflet layers can no longer bleed through',
+  ]},
+  { version: '2.40.0', label: 'Mobile map + label + distillery count', date: '2026-05-02', items: [
+    'Retail Prices section now correctly credits "via The Whiskey Wash" — previous label was stale from the Whisky Hunter scraper era',
+    'Map container now fills full screen width on mobile — added explicit width:100% to #mapWrapper and #mapContainer in the ≤600px media query',
+    'Distillery count ("150 distilleries") moved to below the country tabs — previously appeared above them which was visually confusing',
+  ]},
+  { version: '2.39.0', label: 'Mobile nav overhaul', date: '2026-05-02', items: [
+    'Hamburger menu replaces header tabs on mobile (≤480px) — tap to open a full-width drawer with all navigation items',
+    'Settings moved inside the hamburger drawer on mobile — gear icon removed from header to keep it clean',
+    'Page title removed from mobile header — each view already shows its own title at the top',
+    'Nav state correctly restored on tab switch — fixed a bug where the old desktop nav would reappear after navigating',
+    'Map view stacks vertically on mobile (≤600px) — distillery list panel moves below the map instead of beside it',
+  ]},
+  { version: '2.38.0', label: 'Map rendering fix', date: '2026-05-02', items: [
+    'Maps now load reliably — fixed blank map caused by Leaflet initialising at zero size when the tab was hidden',
+    'Map is destroyed and recreated if the container has zero width at render time, then invalidateSize called at 50ms and 300ms to ensure tiles fill correctly',
+  ]},
   { version: '2.28.0', label: 'PWA — Install on iPhone', date: '2026-05-02', items: [
     'Progressive Web App support — visit in Safari, tap Share → Add to Home Screen, and Whisky Companion installs as a full-screen app with its own icon',
     'Custom SO icon generated at runtime — dark charcoal background, orange stripe, Society Obscura branding',
@@ -9835,7 +9855,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.40.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.41.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
