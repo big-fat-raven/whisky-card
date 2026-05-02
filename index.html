@@ -639,7 +639,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 /* ── Modal ── */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-  z-index: 800; display: flex; align-items: center; justify-content: center;
+  z-index: 1100; display: flex; align-items: center; justify-content: center;
   padding: 24px; opacity: 0; transition: opacity 0.18s; pointer-events: none;
 }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
@@ -1561,7 +1561,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.41.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.42.0</div>
 
 <header class="app-header">
   <div>
@@ -8094,7 +8094,12 @@ function highlightMapMarker(name) {
   document.querySelectorAll('#mapSideList .map-list-item.active').forEach(el => el.classList.remove('active'));
   if (!_leafletMap || !_leafletMarkers[name]) return;
   const marker = _leafletMarkers[name];
-  _leafletMap.panTo(marker.getLatLng(), { animate: true, duration: 0.4 });
+  // On mobile the map is above the list — scroll it into view first, then pan
+  const mapEl = document.getElementById('mapContainer');
+  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => {
+    _leafletMap.panTo(marker.getLatLng(), { animate: true, duration: 0.4 });
+  }, mapEl ? 350 : 0);
   const popupEl = document.createElement('div');
   const title = document.createElement('div');
   title.style.cssText = 'font-size:11px;font-weight:700;color:#2B3038;font-family:Helvetica Neue,sans-serif;';
@@ -8149,6 +8154,10 @@ const APP_VERSION  = '2.11.0';
 const DATA_VERSION = 3;
 
 const CHANGELOG = [
+  { version: '2.42.0', label: 'Map: distillery modal + list scroll fix', date: '2026-05-02', items: [
+    'Distillery profile card no longer has zoom controls or attribution overlapping it — modal z-index raised to 1100, above all Leaflet layers',
+    'Tapping a distillery in the side list now scrolls the map into view on mobile before panning to the marker — previously the map stayed off-screen',
+  ]},
   { version: '2.41.0', label: 'Map popup + nav drawer z-index fixes', date: '2026-05-02', items: [
     'Distillery popup now renders above Leaflet zoom controls and attribution — Leaflet popup pane raised to z-index 850 (above controls at 800)',
     'Mobile nav drawer now renders above the map on all pages — z-index raised to 10000 so Leaflet layers can no longer bleed through',
@@ -9855,7 +9864,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.41.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.42.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
