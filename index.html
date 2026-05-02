@@ -1347,9 +1347,10 @@ select.field-input {
   .app-header h1 { display: none; }
   .header-tabs { display: none; }
   .hamburger-btn { display: flex; }
-  .mobile-nav-active-label { display: block; }
+  .mobile-nav-active-label { display: none; }
   .beta-badge { display: none; }
   .settings-btn { display: none; }
+  .app-header h1 { display: none; }
   .container { padding: 14px 12px 40px; }
   .section-body { padding: 10px 12px; }
   .section-head { padding: 8px 12px; flex-wrap: wrap; gap: 5px; }
@@ -1557,7 +1558,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.36.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.37.0</div>
 
 <header class="app-header">
   <div>
@@ -7883,6 +7884,11 @@ async function renderMap(country) {
 
   await loadLeaflet();
 
+  if (!window.L) {
+    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--tf-dim);font-size:12px;">Map library failed to load. Check your connection and reload.</div>';
+    return;
+  }
+
   const config = MAP_COUNTRIES[country];
 
   // Create map once; NEVER clear container.innerHTML after this point
@@ -7904,8 +7910,10 @@ async function renderMap(country) {
   }
 
   _leafletMap.setView(config.center, config.zoom, { animate: false });
-  setTimeout(() => { if (_leafletMap) _leafletMap.invalidateSize(); }, 100);
-  setTimeout(() => { if (_leafletMap) _leafletMap.invalidateSize(); }, 400);
+  // Force tile re-render — multiple passes to handle slow layout on mobile
+  [50, 200, 600, 1200].forEach(ms =>
+    setTimeout(() => { if (_leafletMap) _leafletMap.invalidateSize(true); }, ms)
+  );
 
   // Clear old markers + region labels
   if (_leafletMarkerLayer) _leafletMarkerLayer.remove();
@@ -9747,6 +9755,7 @@ function _updateMobileNavActive(tab) {
 runMigrations();
 initPWA();
 renderHistory();
+loadLeaflet(); // preload so map tab is instant
 renderSpinFavs();
 </script>
 
@@ -9832,7 +9841,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.36.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.37.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
