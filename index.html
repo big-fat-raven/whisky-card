@@ -1492,6 +1492,8 @@ select.field-input {
 .leaflet-control-zoom a:hover { color: var(--amber); }
 .leaflet-control-attribution { font-size: 9px !important; color: var(--tf-dim) !important; background: rgba(241,239,234,0.85) !important; }
 .leaflet-control-attribution a { color: var(--tf-dim) !important; }
+/* Raise popup above controls (controls default z-index: 800, popups: 700) */
+.leaflet-popup-pane { z-index: 850 !important; }
 .map-region-label {
   background: none !important; border: none !important; box-shadow: none !important;
   font-size: 9px !important; font-weight: 700 !important; letter-spacing: 0.1em !important;
