@@ -1300,9 +1300,11 @@ select.field-input {
   .app-header { padding: 10px 14px; }
   .header-brand { font-size: 16px; letter-spacing: 0.2em; }
   .app-header h1 { display: none; }
-  .header-tab { padding: 0 10px; font-size: 9px; letter-spacing: 0.08em; }
+  .header-tabs { display: none; }
+  .hamburger-btn { display: flex; }
+  .mobile-nav-active-label { display: block; }
   .beta-badge { display: none; }
-  .settings-btn { padding: 0 10px; }
+  .settings-btn { padding: 0 6px; }
   .container { padding: 14px 12px 40px; }
   .section-body { padding: 10px 12px; }
   .section-head { padding: 8px 12px; flex-wrap: wrap; gap: 5px; }
@@ -1497,11 +1499,61 @@ body {
   height: calc(62px + env(safe-area-inset-top));
 }
 
+/* ── Hamburger nav (mobile) ── */
+.hamburger-btn {
+  display: none; background: none; border: none; cursor: pointer;
+  color: var(--tb); padding: 6px 8px; border-radius: 4px;
+  flex-direction: column; gap: 4px; align-items: center; justify-content: center;
+}
+.hamburger-btn span {
+  display: block; width: 20px; height: 2px; background: currentColor;
+  border-radius: 1px; transition: all 0.2s;
+}
+.hamburger-btn.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger-btn.open span:nth-child(2) { opacity: 0; }
+.hamburger-btn.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.mobile-nav-drawer {
+  display: none; position: fixed; top: 0; left: 0; right: 0;
+  background: var(--dark); z-index: 199; flex-direction: column;
+  padding-bottom: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  border-bottom: 3px solid #F07020;
+}
+.mobile-nav-drawer.open { display: flex; }
+.mobile-nav-spacer { flex-shrink: 0; }
+.mobile-nav-tab {
+  padding: 14px 20px; border: none; background: none; cursor: pointer;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--tb-dim); font-family: inherit; text-align: left;
+  display: flex; align-items: center; gap: 10px; transition: background 0.1s;
+}
+.mobile-nav-tab:hover { background: rgba(255,255,255,0.05); color: var(--tb); }
+.mobile-nav-tab.active { color: var(--tb); }
+.mobile-nav-tab.active::before {
+  content: ''; display: block; width: 3px; height: 16px;
+  background: #F07020; border-radius: 2px; margin-right: 2px;
+}
+.mobile-nav-tab:not(.active)::before {
+  content: ''; display: block; width: 3px; height: 16px;
+  margin-right: 2px;
+}
+.mobile-nav-active-label {
+  display: none; font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--tb-dim); text-transform: uppercase; margin-left: 6px;
+}
+
+@media (max-width: 600px) {
+  .map-body-row { flex-direction: column; }
+  .map-panel {
+    width: 100%; height: 260px; min-height: 0; max-height: 260px;
+  }
+}
+
 </style>
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.28.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.32.0</div>
 
 <header class="app-header">
   <div>
@@ -1519,9 +1571,26 @@ body {
       <button class="header-tab" id="tab-pour" onclick="switchTab('pour')">Pour</button>
       <button class="header-tab" id="tab-library" onclick="switchTab('library')">Library</button>
     </nav>
-    <button class="settings-btn" onclick="openSettings()" title="Settings">⚙</button>
+    <div style="display:flex;align-items:center;gap:2px;">
+      <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="mobile-nav-active-label" id="mobileNavLabel">Tastings</span>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">⚙</button>
+    </div>
   </div>
 </header>
+
+<!-- ══ Mobile nav drawer ══ -->
+<div class="mobile-nav-drawer" id="mobileNavDrawer">
+  <div class="mobile-nav-spacer" id="mobileNavSpacer"></div>
+  <button class="mobile-nav-tab active" id="mnav-tastings" onclick="switchTab('tastings');closeMobileNav()">Tastings</button>
+  <button class="mobile-nav-tab" id="mnav-discover" onclick="switchTab('discover');closeMobileNav()">Discover</button>
+  <button class="mobile-nav-tab" id="mnav-map" onclick="switchTab('map');closeMobileNav()">Map</button>
+  <button class="mobile-nav-tab" id="mnav-fitcheck" onclick="switchTab('fitcheck');closeMobileNav()">Spin</button>
+  <button class="mobile-nav-tab" id="mnav-pour" onclick="switchTab('pour');closeMobileNav()">Pour</button>
+  <button class="mobile-nav-tab" id="mnav-library" onclick="switchTab('library');closeMobileNav()">Library</button>
+</div>
 
 <!-- ══ Saved side drawer ══ -->
 <div class="saved-backdrop" id="savedBackdrop" onclick="closeSavedDrawer()"></div>
@@ -3525,7 +3594,7 @@ function undoPolish() {
 
 async function polishNotes() {
   const key = loadApiKey();
-  if (!key) { showToast('Add your API key in ⚙ Settings first'); openSettings(); return; }
+  if (!key && !_WORKER_URL) { showToast('Add your API key in ⚙ Settings first'); openSettings(); return; }
   const ta = document.getElementById('f-notes');
   const raw = ta.value.trim();
   if (!raw) { showToast('Nothing to clean up yet'); return; }
@@ -4218,7 +4287,7 @@ Write a single prose paragraph, 3–6 sentences, in first-person present tense. 
 
 function openChad() {
   const key = loadApiKey();
-  if (!key) { showToast('Add your API key in ⚙ Settings first'); openSettings(); return; }
+  if (!key && !_WORKER_URL) { showToast('Add your API key in ⚙ Settings first'); openSettings(); return; }
 
   const name = (document.getElementById('f-name')?.value || '').trim() || 'Unnamed';
   document.getElementById('chadWhiskyPill').textContent = name;
@@ -4321,7 +4390,7 @@ async function chadSend() {
   if (input) { input.style.height = 'auto'; }
 
   const key = loadApiKey();
-  if (!key) { showToast('Add your API key in ⚙ Settings first'); return; }
+  if (!key && !_WORKER_URL) { showToast('Add your API key in ⚙ Settings first'); return; }
 
   _chadHistory.push({ role: 'user', content: text });
   _chadHistory.push({ role: '_typing' });
@@ -4368,7 +4437,7 @@ async function chadSend() {
 async function chadSynthesize() {
   if (_chadBusy || _chadHistory.filter(m=>m.role==='user').length === 0) return;
   const key = loadApiKey();
-  if (!key) { showToast('Add your API key in ⚙ Settings first'); return; }
+  if (!key && !_WORKER_URL) { showToast('Add your API key in ⚙ Settings first'); return; }
 
   _chadHistory.push({ role: '_typing' });
   _chadBusy = true;
@@ -5392,6 +5461,7 @@ document.addEventListener('click', e => {
 // ── Discover / Recommendations ───────────────────────────────────────────────
 
 function switchTab(tab) {
+  _updateMobileNavActive(tab);
   document.getElementById('tab-tastings').classList.toggle('active', tab === 'tastings');
   document.getElementById('tab-discover').classList.toggle('active', tab === 'discover');
   document.getElementById('tab-map').classList.toggle('active', tab === 'map');
@@ -5578,7 +5648,7 @@ function showDiscoverView() {
     }
     const basisEl = document.getElementById('discoverBasis');
     if (basisEl) {
-      if (!key)             basisEl.textContent = 'Configure your API key in ⚙ Settings to get recommendations.';
+      if (!key && !_WORKER_URL) basisEl.textContent = 'Configure your API key in ⚙ Settings to get recommendations.';
       else if (!tastings.length) basisEl.textContent = 'Add tastings first to unlock recommendations.';
       else                  basisEl.textContent = `${tastings.length} tasting${tastings.length > 1 ? 's' : ''} ready`;
     }
@@ -5930,11 +6000,9 @@ IMPORTANT for searchQuery: Use the exact product title as it appears on The Whis
 
 async function getRecommendations() {
   const key = loadApiKey();
-  if (!key) {
-    if (!_WORKER_URL) {
-      document.getElementById('settingsApiKey') && document.getElementById('settingsApiKey').focus();
-      showToast('Enter and save your Claude API key first');
-    }
+  if (!key && !_WORKER_URL) {
+    document.getElementById('settingsApiKey') && document.getElementById('settingsApiKey').focus();
+    showToast('Enter and save your Claude API key first');
     return;
   }
   const tastings = dbLoad();
@@ -6646,7 +6714,7 @@ async function analyseFit() {
   const tastings = dbLoad();
   if (!tastings.length) { showToast('Add some tastings first — we need a profile to match against'); return; }
   const key = loadApiKey();
-  if (!key && !_WORKER_URL) { showToast('Enter and save your Claude API key first'); return; }
+  if (!key && !_WORKER_URL) { if (!_WORKER_URL) showToast('Enter and save your Claude API key first'); return; }
 
   const resultEl = document.getElementById('fitCheckResult');
   resultEl.innerHTML = `<div class="discover-loading"><div class="spinner"></div><div class="discover-loading-text" id="fitLoadingText">Analysing…</div></div>`;
@@ -7003,7 +7071,7 @@ async function buildTWEContext(query) {
 // Ask Claude (Haiku) to enumerate a distillery's full range from training knowledge
 async function enumerateRangeWithClaude(distilleryName) {
   const key = loadApiKey();
-  if (!key) return null;
+  if (!key && !_WORKER_URL) return null;
   try {
     const res = await fetch(_apiUrl(), {
       method: 'POST',
@@ -8756,7 +8824,7 @@ async function showDistillery(name) {
   if (_distilleryCache[name]) { renderDistilleryModal(_distilleryCache[name]); return; }
 
   const key = loadApiKey();
-  if (!key) {
+  if (!key && !_WORKER_URL) {
     document.getElementById('distModalBody').innerHTML =
       `<p style="font-size:12px;color:var(--tf-dim);line-height:1.6;">Add your Claude API key in Settings to look up distillery profiles.</p>`;
     return;
@@ -8812,7 +8880,7 @@ async function onFormLabelScan(input) {
     const [header, b64] = dataUrl.split(',');
     const mediaType = header.match(/data:(.*);/)[1] || 'image/jpeg';
     const key = loadApiKey();
-    if (!key) {
+    if (!key && !_WORKER_URL) {
       showToast('Enter and save your Claude API key first');
       btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Scan label';
       btn.disabled = false;
@@ -9320,7 +9388,7 @@ function saveLibraryNote(id, text) {
 
 async function fetchLibraryDescription(id) {
   const key = loadApiKey();
-  if (!key && !_WORKER_URL) { showToast('Enter and save your Claude API key first'); return; }
+  if (!key && !_WORKER_URL) { if (!_WORKER_URL) showToast('Enter and save your Claude API key first'); return; }
   const bottles = libraryLoad();
   const b = bottles.find(x => x.id === id);
   if (!b) return;
@@ -9371,7 +9439,7 @@ async function onLibraryPhotoCapture(input) {
     const [header, b64] = dataUrl.split(',');
     const mediaType = header.match(/data:(.*);/)[1] || 'image/jpeg';
     const key = loadApiKey();
-    if (!key) {
+    if (!key && !_WORKER_URL) {
       showToast('Enter and save your Claude API key first');
       btn.textContent = 'Add via photo'; btn.disabled = false;
       return;
@@ -9630,6 +9698,34 @@ function initPWA() {
   if (manifestEl) manifestEl.href = URL.createObjectURL(blob);
 }
 
+
+// ── Mobile nav ────────────────────────────────────────────────────────────────
+function toggleMobileNav() {
+  const drawer = document.getElementById('mobileNavDrawer');
+  const btn    = document.getElementById('hamburgerBtn');
+  const isOpen = drawer.classList.contains('open');
+  if (isOpen) { closeMobileNav(); } else {
+    // Size the spacer to match the header height so tabs appear below it
+    const header = document.querySelector('.app-header');
+    const spacer = document.getElementById('mobileNavSpacer');
+    if (spacer && header) spacer.style.height = header.offsetHeight + 'px';
+    drawer.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+function closeMobileNav() {
+  document.getElementById('mobileNavDrawer').classList.remove('open');
+  document.getElementById('hamburgerBtn').classList.remove('open');
+}
+function _updateMobileNavActive(tab) {
+  document.querySelectorAll('.mobile-nav-tab').forEach(el => {
+    el.classList.toggle('active', el.id === 'mnav-' + tab);
+  });
+  const labels = { tastings:'Tastings', discover:'Discover', map:'Map', fitcheck:'Spin', pour:'Pour', library:'Library' };
+  const lbl = document.getElementById('mobileNavLabel');
+  if (lbl) lbl.textContent = labels[tab] || '';
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 runMigrations();
 initPWA();
@@ -9719,7 +9815,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.28.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.32.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
