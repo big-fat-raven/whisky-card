@@ -1349,7 +1349,7 @@ select.field-input {
   .hamburger-btn { display: flex; }
   .mobile-nav-active-label { display: block; }
   .beta-badge { display: none; }
-  .settings-btn { padding: 0 6px; }
+  .settings-btn { display: none; }
   .container { padding: 14px 12px 40px; }
   .section-body { padding: 10px 12px; }
   .section-head { padding: 8px 12px; flex-wrap: wrap; gap: 5px; }
@@ -1557,7 +1557,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.35.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.36.0</div>
 
 <header class="app-header">
   <div>
@@ -7749,6 +7749,7 @@ function loadLeaflet() {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
     script.onload = resolve;
+    script.onerror = resolve; // don't hang on CDN failure
     document.head.appendChild(script);
   });
 }
@@ -7869,6 +7870,11 @@ async function renderMap(country) {
   document.querySelectorAll('#mapCountryTabs .fd-tag').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.country === country);
   });
+
+  // Wait for container to be visible and have dimensions
+  if (!container.offsetHeight) {
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  }
 
   // Show loading only on first load (before Leaflet creates its DOM)
   if (!_leafletMap) {
@@ -9826,7 +9832,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.35.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.36.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
