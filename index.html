@@ -8094,9 +8094,6 @@ function highlightMapMarker(name) {
   document.querySelectorAll('#mapSideList .map-list-item.active').forEach(el => el.classList.remove('active'));
   if (!_leafletMap || !_leafletMarkers[name]) return;
   const marker = _leafletMarkers[name];
-  // On mobile the map is above the list — scroll it into view, then pan
-  const mapEl = document.getElementById('mapContainer');
-  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   _leafletMap.panTo(marker.getLatLng(), { animate: true, duration: 0.4 });
   const popupEl = document.createElement('div');
   const title = document.createElement('div');
