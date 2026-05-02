@@ -27,6 +27,10 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--tf); min-height: 100vh; padding-top: 62px; }
+/* Eliminate 300ms tap delay on iOS across all interactive elements */
+a, button, [onclick], label, select, input, textarea, .header-tab, .fd-tag, .mobile-nav-tab {
+  touch-action: manipulation;
+}
 
 /* ── Header ── */
 .app-header {
@@ -1423,7 +1427,8 @@ select.field-input {
 .map-list-item {
   font-size: 12px; padding: 4px 12px; cursor: pointer; color: var(--tf);
   display: flex; align-items: center; gap: 8px; line-height: 1.35;
-  transition: background 0.1s;
+  transition: background 0.1s; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .map-list-item:hover { background: rgba(229,91,32,0.08); color: var(--amber); }
 .map-list-item.tasted { font-weight: 600; }
@@ -1561,7 +1566,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.43.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.44.0</div>
 
 <header class="app-header">
   <div>
@@ -8149,6 +8154,10 @@ const APP_VERSION  = '2.11.0';
 const DATA_VERSION = 3;
 
 const CHANGELOG = [
+  { version: '2.44.0', label: 'Eliminate iOS 300ms tap delay', date: '2026-05-02', items: [
+    'All tappable elements now respond instantly on iOS — applied touch-action:manipulation globally to buttons, links, tabs, and list items',
+    'Map distillery list now highlights and jumps in a single tap — the 300ms delay was swallowing the first touch event',
+  ]},
   { version: '2.43.0', label: 'Map list: one tap to jump, → to profile', date: '2026-05-02', items: [
     'Tapping a distillery name in the side list now jumps the map to that distillery in a single tap — no delay or double-tap required',
     'Tap → to open the full distillery profile; tap the name just to see where it is on the map',
@@ -9864,7 +9873,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.43.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.44.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
