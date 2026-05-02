@@ -1561,7 +1561,7 @@ body {
 </head>
 <body>
 
-<div class="version-badge" onclick="openChangelog()" title="What's new">v2.42.0</div>
+<div class="version-badge" onclick="openChangelog()" title="What's new">v2.43.0</div>
 
 <header class="app-header">
   <div>
@@ -8094,12 +8094,10 @@ function highlightMapMarker(name) {
   document.querySelectorAll('#mapSideList .map-list-item.active').forEach(el => el.classList.remove('active'));
   if (!_leafletMap || !_leafletMarkers[name]) return;
   const marker = _leafletMarkers[name];
-  // On mobile the map is above the list — scroll it into view first, then pan
+  // On mobile the map is above the list — scroll it into view, then pan
   const mapEl = document.getElementById('mapContainer');
-  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  setTimeout(() => {
-    _leafletMap.panTo(marker.getLatLng(), { animate: true, duration: 0.4 });
-  }, mapEl ? 350 : 0);
+  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  _leafletMap.panTo(marker.getLatLng(), { animate: true, duration: 0.4 });
   const popupEl = document.createElement('div');
   const title = document.createElement('div');
   title.style.cssText = 'font-size:11px;font-weight:700;color:#2B3038;font-family:Helvetica Neue,sans-serif;';
@@ -8154,6 +8152,11 @@ const APP_VERSION  = '2.11.0';
 const DATA_VERSION = 3;
 
 const CHANGELOG = [
+  { version: '2.43.0', label: 'Map list: one tap to jump, → to profile', date: '2026-05-02', items: [
+    'Tapping a distillery name in the side list now jumps the map to that distillery in a single tap — no delay or double-tap required',
+    'Tap → to open the full distillery profile; tap the name just to see where it is on the map',
+    'Map scrolls into view on mobile when jumping to a distillery from the list',
+  ]},
   { version: '2.42.0', label: 'Map: distillery modal + list scroll fix', date: '2026-05-02', items: [
     'Distillery profile card no longer has zoom controls or attribution overlapping it — modal z-index raised to 1100, above all Leaflet layers',
     'Tapping a distillery in the side list now scrolls the map into view on mobile before panning to the marker — previously the map stayed off-screen',
@@ -9864,7 +9867,7 @@ renderSpinFavs();
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.42.0</span>
+      <span style="font-size:10px;color:var(--tf-dim);">Society Obscura · v2.43.0</span>
       <span class="version-link" onclick="closeSettings();openChangelog()">What's new? →</span>
     </div>
   </div>
